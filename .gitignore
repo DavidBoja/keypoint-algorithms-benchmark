@@ -16,3 +16,5 @@ results/**
 *.pyc
 data/descriptors/**
 data/hpatches-release/**
+python/ISPA/hpatches-sequences-release/**/kp.npz
+python/ISPA/hpatches-sequences-release/**/des.npz
