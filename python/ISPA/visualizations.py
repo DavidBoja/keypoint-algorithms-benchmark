@@ -2,6 +2,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn
 import math
 import glob
 import re
@@ -40,6 +41,7 @@ def visualizeKp(detector_name, folder_path):
         axx.scatter(kp[id1][:,0],kp[id1][:,1], s=1, color='red')
         axx.set_title('{}'.format(image_names[id1]))
     plt.show()
+
 
 def topNrMatches(detector_name, descriptor_name, folder_path, nr_matches):
     '''
@@ -110,20 +112,75 @@ def topNrMatches(detector_name, descriptor_name, folder_path, nr_matches):
 
     plt.show()
 
+
+def taskEvaluation(dict_of_APs,title_name='Evaluation graph'):
+    '''
+    Returns a barchart with the keys of the dict_of_APs as names of algorithms
+    and height as mAP from dict_of_APs values. Aditionally plot dots for min
+    and max values on barchart.
+    '''
+
+    names = []
+    scores = []
+    err = []
+
+    for alg,results in dict_of_APs.items():
+        names.append(alg)
+        mean_ = np.mean(results)
+        scores.append(mean_)
+        err.append([mean_ - min(results),max(results)- mean_])
+
+    pos = np.arange(len(dict_of_APs))
+
+
+    #plt.style.use('seaborn')
+    fig, ax1 = plt.subplots(figsize=(10,10))
+    fig.subplots_adjust(left=0.115, right=0.88)
+
+
+    ax1.barh(pos, scores,
+             align='center',
+             height=0.5,
+             tick_label=names,
+             color=seaborn.color_palette("Set2"),
+             xerr=np.array(err).T)
+    plt.xlim([0, 1])
+    ax2 = ax1.twinx()
+    ax2.set_yticks(pos)
+    ax2.set_ylim(ax1.get_ylim())
+    ax2.set_yticklabels(scores)
+
+    ax1.set_title(title_name)
+    plt.savefig(title_name.replace(' ','_') + '.png')
+    plt.show()
+
+
 if __name__ == '__main__':
     import argparse
 
-    parser_of_args = argparse.ArgumentParser(description='Visualize keypoints and graphs')
-    parser_of_args.add_argument('detector_name', type=str,
-                                help='Name of the detector')
-    parser_of_args.add_argument('descriptor_name', type=str,
-                                help='Name of the descriptor')
-    parser_of_args.add_argument('folder_path', type=str,
-                                help='Path of folder')
-    parser_of_args.add_argument('nr_matches', type=int,
-                                help='Number of matches to visualize')
+    # parser_of_args = argparse.ArgumentParser(description='Visualize keypoints and graphs')
+    # parser_of_args.add_argument('detector_name', type=str,
+    #                             help='Name of the detector')
+    # parser_of_args.add_argument('descriptor_name', type=str,
+    #                             help='Name of the descriptor')
+    # parser_of_args.add_argument('folder_path', type=str,
+    #                             help='Path of folder')
+    # parser_of_args.add_argument('nr_matches', type=int,
+    #                             help='Number of matches to visualize')
+    #
+    # args = parser_of_args.parse_args()
 
-    args = parser_of_args.parse_args()
+    # visualizeKp(args.detector_name, args.folder_path)
+    # topNrMatches(args.detector_name, args.descriptor_name, args.folder_path, args.nr_matches)
 
-    visualizeKp(args.detector_name, args.folder_path)
-    topNrMatches(args.detector_name, args.descriptor_name, args.folder_path, args.nr_matches)
+    dict_of_APs = {'mmaP1': list(np.random.rand(5)),
+               'mmaP2' : list(np.random.rand(5)),
+               'mmaP3' : list(np.random.rand(5)),
+               'mmaP4' : list(np.random.rand(5)),
+               'mmaP5' : list(np.random.rand(5)),
+               'mmaP6' : list(np.random.rand(5)),
+               'mmaP7' : list(np.random.rand(5)),
+               'mmaP8' : list(np.random.rand(5))}
+
+
+    taskEvaluation(dict_of_APs,'Random graf')

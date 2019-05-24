@@ -11,17 +11,30 @@ from pprint import pprint
 from sklearn.metrics import average_precision_score
 from random import sample
 
+from own_implementations import HarrisMataHarris, ShiTomasi
+
 all_detectors = {'sift':cv2.xfeatures2d.SIFT_create,
                  'surf':cv2.xfeatures2d.SURF_create,
                  'ORB':cv2.ORB_create,
-                 'fast':cv2.FastFeatureDetector_create}
+                 'fast':cv2.FastFeatureDetector_create,
+                 'brisk':cv2.BRISK_create,
+                 'harris':HarrisMataHarris,
+                 'shi_tomasi':ShiTomasi,
+                 'kaze':cv2.KAZE_create}
 
 all_descriptors = {'sift':cv2.xfeatures2d.SIFT_create,
                    'surf':cv2.xfeatures2d.SURF_create,
-                   'ORB':cv2.ORB_create}
+                   'ORB':cv2.ORB_create,
+                   'brisk':cv2.BRISK_create,
+                   'freak':cv2.xfeatures2d.FREAK_create,
+                   'kaze':cv2.KAZE_create}
 
 
 def alreadyCompiledKeypoints(dataset_path):
+    '''
+    Check which detectors and descriptors you already compiled.
+    '''
+    
     if 'kp.npz' in os.listdir(dataset_path + '/v_london'):
         file = np.load(dataset_path + '/v_london/kp.npz')
         print('Compiled keypoints: {}'.format(file.files))
@@ -214,17 +227,17 @@ if __name__ == '__main__':
                                 help='name of the detector')
     parser_of_args.add_argument('descriptor_name', type=str,
                                 help='name of descriptor')
-    # parser_of_args.add_argument('dataset_path', type=str,
-    #                             help='path to hpatches dataset')
+    parser_of_args.add_argument('dataset_path', type=str,
+                                help='path to hpatches dataset')
 
     args = parser_of_args.parse_args()
 
-    project_root = '/home/davidboja/PycharmProjects/FER/hpatches-benchmark/python/ISPA'
-    dataset_path = project_root + '/hpatches-sequences-release/*'
+    # project_root = '/home/davidboja/PycharmProjects/FER/hpatches-benchmark/python/ISPA'
+    # dataset_path = project_root + '/hpatches-sequences-release/*'
 
-    # dataset_path = args.dataset_path + '/*'
-    # createKeypoints(args['detector_name'],args['descriptor_name'],args['dataset_path'])
-    # removeUncommonPoints(args['detector_name'],args['descriptor_name'],args['dataset_path'])
+    dataset_path = args.dataset_path + '/*'
+    createKeypoints(args['detector_name'],args['descriptor_name'],args['dataset_path'])
+    removeUncommonPoints(args['detector_name'],args['descriptor_name'],args['dataset_path'])
 
     createKeypoints(args.detector_name, args.descriptor_name, dataset_path)
     removeUncommonPoints(args.detector_name, args.descriptor_name, dataset_path)
