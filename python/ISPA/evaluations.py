@@ -290,8 +290,8 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
 
         for id1, folder in enumerate(folders):
 
-            y = []
-            s = []
+            # y = []
+            # s = []
 
             folder_name = folder.split('/')[-1]
 
@@ -335,6 +335,13 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
             random_keypoint_indexes = sample(range(kp[0].shape[0]), nr_of_indexes)
             print('NR OF INDEXES: {}'.format(nr_of_indexes))
 
+            # create dict which saves y and s for every keypoint separately
+            y = {}
+            s = {}
+            for i in range(len(random_keypoint_indexes)):
+                y[i] = []
+                s[i] = []
+
             # choose ref image
             x_kp = kp[0][random_keypoint_indexes,:]
             x_des = des[0][random_keypoint_indexes,:]
@@ -358,11 +365,11 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
                     index_of_closest_kp = np.argmin(distances)
                     #closest_keypoint = kp[id1+1][index_of_closest_kp,:]
 
-                    y.append(1)
+                    y[i].append(1)
                     # TODO: ADD cv2.HAMMING distance for binary detectors
                     index_in_orig_kp0 = random_keypoint_indexes[i]
                     descriptors_distance = dess[index_of_closest_kp,:] - des[0][index_in_orig_kp0,:]
-                    s.append(np.sqrt(np.sum((descriptors_distance)**2,axis=0)))
+                    s[i].append(np.sqrt(np.sum((descriptors_distance)**2,axis=0)))
 
 
 
@@ -371,15 +378,20 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
                 matches = bf.match(x_des,
                                    dess)
 
-                s += [m.distance for m in matches]
-                y += [-1 for m in matches]
+                for m in matches:
+                    s[m.queryIdx].append(m.distance)
+                    y[m.queryIdx].append(-1)
+
+                # s += [m.distance for m in matches]
+                # y += [-1 for m in matches]
 
 
             # after iterating over sequence, compute AP
-            s2 = [-s_ for s_ in s]
-            AP = average_precision_score(y,s2)
-            list_of_APs.append(AP)
-            list_of_all_APs.append(AP)
+            for i in range(len(y.keys())):
+                s2 = [-s_ for s_ in s[i]]
+                AP = average_precision_score(y[i],s2)
+                list_of_APs.append(AP)
+                list_of_all_APs.append(AP)
 
             # print result for every sequence
             # print('| x | {} | {} | {} | {} | {} | {} | {} |'.format(detector_name,
