@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import math
 import re
 import os
+import timeit
 from matplotlib.patches import ConnectionPatch
 from pprint import pprint
 from sklearn.metrics import average_precision_score
@@ -34,7 +35,7 @@ def alreadyCompiledKeypoints(dataset_path):
     '''
     Check which detectors and descriptors you already compiled.
     '''
-    
+
     if 'kp.npz' in os.listdir(dataset_path + '/v_london'):
         file = np.load(dataset_path + '/v_london/kp.npz')
         print('Compiled keypoints: {}'.format(file.files))
@@ -94,10 +95,27 @@ def createKeypoints(detector_name, descriptor_name, dataset_path, all_at_once=Fa
         for id1, algorithm in enumerate(zip(detector,descriptor)):
 
             if not all_at_once:
+                start_detector = timeit.default_timer()
                 kp_ = algorithm[0].detect(images_[id1],None)
+                end_detector = timeit.default_timer()
+
+                with open('detector_time.txt','a+') as file:
+                    file.write('{}:{}\n'.format(detector_name,end_detector-start_detector))
+
+                start_descriptor = timeit.default_timer()
                 kp_, des_ = algorithm[1].compute(images_[id1], kp_)
+                end_descriptor = timeit.default_timer()
+
+                with open('descriptor_time.txt','a+') as file:
+                    file.write('{}:{}\n'.format(descriptor_name,end_descriptor-start_descriptor))
             else:
+                start_detector_and_descriptor = timeit.default_timer()
                 kp, des = det.detectAndCompute(images_[id1],None)
+                end_detector_and_descriptor = timeit.default_timer()
+
+                with open('detector_and_descriptor_time.txt','a+') as file:
+                    file.write('{}:{}\n'.format(detector_name,
+                        end_detector_and_descriptor-start_detector_and_descriptor))
 
             kp_np = np.array([(k.pt[0], k.pt[1], k.angle, k.size, k.response) for k in kp_])
 

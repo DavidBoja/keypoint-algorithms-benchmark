@@ -152,7 +152,7 @@ def taskEvaluation(dict_of_APs,title_name='Evaluation graph'):
 
     ax1.set_title(title_name)
     plt.savefig(title_name.replace(' ','_') + '.png')
-    plt.show()
+    #plt.show()
 
 
 if __name__ == '__main__':

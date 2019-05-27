@@ -132,23 +132,23 @@ def patchVerification(detector_name, descriptor_name, n, dataset_path, nr_of_ite
         list_of_APs.append(AP)
 
         # print result for every iteration
-        print('| x | {} | {} | {} | {} | {} | {} | {} |'.format(detector_name,
-                                                                descriptor_name,
-                                                                AP,
-                                                                n,
-                                                                y.count(1),
-                                                                y.count(-1),
-                                                                n*5*len(folders)))
+        # print('| x | {} | {} | {} | {} | {} | {} | {} |'.format(detector_name,
+        #                                                         descriptor_name,
+        #                                                         AP,
+        #                                                         n,
+        #                                                         y.count(1),
+        #                                                         y.count(-1),
+        #                                                         n*5*len(folders)))
 
-    mAP = sum(list_of_APs) / len(list_of_APs)
+    #mAP = sum(list_of_APs) / len(list_of_APs)
 
     with open('patchVerification.txt','a+') as file:
-        file.write('det: {} | des: {} | list_of_APs: {} | mAP: {} |'.format(detector_name,
+        file.write('det: {} | des: {} | list_of_APs: {} |'.format(detector_name,
                                                                             descriptor_name,
-                                                                            list_of_APs,
-                                                                            mAP))
+                                                                            list_of_APs
+                                                                            ))
 
-    return list_of_APs, mAP
+    return list_of_APs
 
 
 def imageMatching(detector_name, descriptor_name, n, dataset_path, nr_of_iterations=1):
@@ -162,10 +162,12 @@ def imageMatching(detector_name, descriptor_name, n, dataset_path, nr_of_iterati
 
     transformations = getTransformations(dataset_path)
     folders = glob.glob(dataset_path)
-    list_of_APs = []
-    mAP_for_iteration = []
+    list_of_mAPs = []
+    list_of_all_APs = []
 
     for i in range(nr_of_iterations):
+
+        list_of_APs = []
 
         for id1, folder in enumerate(folders):
 
@@ -245,26 +247,27 @@ def imageMatching(detector_name, descriptor_name, n, dataset_path, nr_of_iterati
                 AP = average_precision_score(y,s2)
                 list_of_APs.append(AP)
                 # print result for every pair of images
-                print('| x | {} | {} | {} | {} | {} | {} | {} |'.format(detector_name,
-                                                                        descriptor_name,
-                                                                        AP,
-                                                                        n,
-                                                                        y.count(1),
-                                                                        y.count(-1),
-                                                                        n*5*len(folders)))
+                # print('| x | {} | {} | {} | {} | {} | {} | {} |'.format(detector_name,
+                #                                                         descriptor_name,
+                #                                                         AP,
+                #                                                         n,
+                #                                                         y.count(1),
+                #                                                         y.count(-1),
+                #                                                         n*5*len(folders)))
 
 
 
 
-        mAP_for_iteration.append(sum(list_of_APs) / len(list_of_APs))
+        list_of_mAPs.append(sum(list_of_APs) / len(list_of_APs))
+        list_of_all_APs.append(list_of_APs)
 
     with open('imageMatching.txt','a+') as file:
-        file.write('det: {} | des: {} | list_of_APs: {} | mAP for iterations: {} |'.format(detector_name,
+        file.write('det: {} | des: {} | list_of_all_APs: {} | list_of_mAPs: {} |'.format(detector_name,
                                                                                            descriptor_name,
-                                                                                           list_of_APs,
-                                                                                           mAP_for_iteration))
+                                                                                           list_of_all_APs,
+                                                                                           list_of_mAPs))
 
-    return list_of_APs, mAP_for_iteration, nr_of_iterations
+    return list_of_all_APs, list_of_mAPs
 
 
 def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterations=1):
@@ -278,13 +281,17 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
 
     transformations = getTransformations(dataset_path)
     folders = glob.glob(dataset_path)
-    list_of_APs = []
+    list_of_mAPs = []
+    list_of_all_APs = []
 
     for i in range(nr_of_iterations):
-        y = []
-        s = []
+
+        list_of_APs = []
 
         for id1, folder in enumerate(folders):
+
+            y = []
+            s = []
 
             folder_name = folder.split('/')[-1]
 
@@ -338,7 +345,7 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
                 # image every keypoint from ref image onto sequence image
                 # Hx are saved in columns, 3xn matrix (third row are all ones)
                 tr = transformations[folder_name][id1]
-                points = np.c_[ x_kp , np.ones(len(x_kp.shape[0]))]
+                points = np.c_[ x_kp[:,[0,1]] , np.ones(x_kp.shape[0])]
                 imaged_points = np.dot(tr, points.T)
                 imaged_points_normal = imaged_points/imaged_points[2,:]
 
@@ -346,14 +353,14 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
                 # for every column in Hx, find its closes kp on the sequence image
                 for i in range(imaged_points_normal.shape[1]):
                     # computing distance between all kp and finding the minimal
-                    dist = kp[id1+1][:[0,1]].T - imaged_points_normal[[0,1],:]
+                    dist = kp[id1+1][:,[0,1]].T - imaged_points_normal[[0,1],i].reshape(2,1)
                     distances = np.sqrt(np.sum((dist)**2,axis=0))
                     index_of_closest_kp = np.argmin(distances)
                     #closest_keypoint = kp[id1+1][index_of_closest_kp,:]
 
                     y.append(1)
                     # TODO: ADD cv2.HAMMING distance for binary detectors
-                    index_in_orig_kp0 = random_keypoint_indexes[index_of_closest_kp]
+                    index_in_orig_kp0 = random_keypoint_indexes[i]
                     descriptors_distance = dess[index_of_closest_kp,:] - des[0][index_in_orig_kp0,:]
                     s.append(np.sqrt(np.sum((descriptors_distance)**2,axis=0)))
 
@@ -368,29 +375,30 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
                 y += [-1 for m in matches]
 
 
-        # after iterating over all the images, compute mAP
-        s2 = [-s_ for s_ in s]
-        AP = average_precision_score(y,s2)
-        list_of_APs.append(AP)
+            # after iterating over sequence, compute AP
+            s2 = [-s_ for s_ in s]
+            AP = average_precision_score(y,s2)
+            list_of_APs.append(AP)
+            list_of_all_APs.append(AP)
 
-        # print result for every iteration
-        print('| x | {} | {} | {} | {} | {} | {} | {} |'.format(detector_name,
-                                                                descriptor_name,
-                                                                AP,
-                                                                n,
-                                                                y.count(1),
-                                                                y.count(-1),
-                                                                n*5*len(folders)))
+            # print result for every sequence
+            # print('| x | {} | {} | {} | {} | {} | {} | {} |'.format(detector_name,
+            #                                                         descriptor_name,
+            #                                                         AP,
+            #                                                         n,
+            #                                                         y.count(1),
+            #                                                         y.count(-1),
+            #                                                         n*5*len(folders)))
 
-    mAP = sum(list_of_APs) / len(list_of_APs)
+        list_of_mAPs.append(sum(list_of_APs) / len(list_of_APs))
 
     with open('patchRetrieval.txt','a+') as file:
-        file.write('det: {} | des: {} | list_of_APs: {} | mAP: {} |'.format(detector_name,
-                                                                            descriptor_name,
-                                                                            list_of_APs,
-                                                                            mAP))
+        file.write('det: {} | des: {} | list_of_APs: {} | list_of_mAPs: {} |'.format(detector_name,
+                                                                                     descriptor_name,
+                                                                                     list_of_all_APs,
+                                                                                     list_of_mAPs))
 
-    return list_of_APs, mAP
+    return list_of_all_APs, list_of_mAPs
 
 
 if __name__ == '__main__':
@@ -413,20 +421,20 @@ if __name__ == '__main__':
     # project_root = '/home/davidboja/PycharmProjects/FER/hpatches-benchmark/python/ISPA'
     # dataset_path = project_root + '/hpatches-sequences-release/*'
 
-    list_of_APs_pV, mAP_pV = patchVerification(args.detector_name,
-                                               args.descriptor_name,
-                                               args.n,
-                                               args.dataset_path,
-                                               args.nr_of_iterations)
+    list_of_APs_pV = patchVerification(args.detector_name,
+                                       args.descriptor_name,
+                                       args.n,
+                                       args.dataset_path,
+                                       args.nr_of_iterations)
 
-    list_of_APs_iM, mAP_iM = imageMatching(args.detector_name,
-                                           args.descriptor_name,
-                                           args.n,
-                                           args.dataset_path,
-                                           args.nr_of_iterations)
+    list_of_all_APs_iM, list_of_mAPs_iM = imageMatching(args.detector_name,
+                                                        args.descriptor_name,
+                                                        args.n,
+                                                        args.dataset_path,
+                                                        args.nr_of_iterations)
 
-    list_of_APs_pR, mAP_pR = patchRetrieval(args.detector_name,
-                                            args.descriptor_name,
-                                            args.n,
-                                            args.dataset_path,
-                                            args.nr_of_iterations)
+    list_of_all_APs_pR, list_of_mAPs_pR = patchRetrieval(args.detector_name,
+                                                         args.descriptor_name,
+                                                         args.n,
+                                                         args.dataset_path,
+                                                         args.nr_of_iterations)
