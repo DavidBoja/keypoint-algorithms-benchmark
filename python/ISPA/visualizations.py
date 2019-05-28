@@ -115,7 +115,7 @@ def topNrMatches(detector_name, descriptor_name, folder_path, nr_matches):
     plt.show()
 
 
-def taskEvaluation(dict_of_APs,title_name='Evaluation graph'):
+def taskEvaluation(dict_of_APs):
     '''
     Returns a barchart with the keys of the dict_of_APs as names of algorithms
     and height as mAP from dict_of_APs values. Aditionally plot dots for min
@@ -129,30 +129,34 @@ def taskEvaluation(dict_of_APs,title_name='Evaluation graph'):
     for alg,results in dict_of_APs.items():
         names.append(alg)
         mean_ = np.mean(results)
-        scores.append(mean_)
-        err.append([mean_ - np.min(results), np.max(results)- mean_])
+        scores.append(float('{0:.2f}'.format(mean_)))
+        err.append([float('{0:.2f}'.format(mean_ - np.min(results))), 
+                    float('{0:.2f}'.format(np.max(results) - mean_))])
 
     pos = np.arange(len(dict_of_APs))
 
-    fig, ax1 = plt.subplots(ncols=3, figsize=(10,10))
-    fig.subplots_adjust(left=0.115, right=0.88)
+    fig, ax1 = plt.subplots(ncols=3, figsize=(10,5))
+    fig.subplots_adjust(left=0.12, right=0.92, top=0.95, bottom=0.05, wspace=0.4)
 
 
-    ax1[0].barh(pos, scores,
-             align='center',
-             height=0.5,
-             tick_label=names,
-             color=seaborn.color_palette("Set2"),
-             xerr=np.array(err).T,
-             capsize=5.)
-    plt.xlim([0, 1])
-    ax2 = ax1[0].twinx()
-    ax2.set_yticks(pos)
-    ax2.set_ylim(ax1[0].get_ylim())
-    ax2.set_yticklabels(scores)
+    for i in range(3):
+        ax1[i].barh(
+                pos, 
+                scores,
+                align='center',
+                height=0.5,
+                tick_label=names if i == 0 else ['' for _ in range(len(dict_of_APs))],
+                color=seaborn.color_palette("Set2"),
+                xerr=np.array(err).T,
+                capsize=5.)
+        plt.xlim([0, 1])
+        ax2 = ax1[i].twinx()
+        ax2.set_yticks(pos)
+        ax2.set_ylim(ax1[i].get_ylim())
+        ax2.set_yticklabels(['{}%'.format(s) for s in scores])
 
-    ax1[0].set_title(title_name)
-    plt.savefig(title_name.replace(' ','_') + '.pdf', format='pdf')
+        ax1[i].set_title(TASKS[i])
+    plt.savefig('graph.pdf', format='pdf')
 
 
 if __name__ == '__main__':
@@ -185,4 +189,4 @@ if __name__ == '__main__':
                   }
 
 
-    taskEvaluation(dict_of_APs,'Random graf')
+    taskEvaluation(dict_of_APs)

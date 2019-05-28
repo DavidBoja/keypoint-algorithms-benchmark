@@ -18,3 +18,13 @@ data/descriptors/**
 data/hpatches-release/**
 python/ISPA/hpatches-sequences-release/**/kp.npz
 python/ISPA/hpatches-sequences-release/**/des.npz
+python/ISPA/patchVerification.txt
+python/ISPA/patchRetrieval.txt
+python/ISPA/imageMatching.txt
+python/ISPA/detector_time.txt
+python/ISPA/descriptor_time.txt
+python/ISPA/failed_combinations.txt
+python/ISPA/me_time_descriptor.txt
+python/ISPA/me_time_detector.txt
+python/ISPA/time_measures.txt
+python/ISPA/tnp1.py
