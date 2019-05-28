@@ -96,26 +96,23 @@ def createKeypoints(detector_name, descriptor_name, dataset_path, all_at_once=Fa
         for id1, algorithm in enumerate(zip(detector,descriptor)):
 
             if not all_at_once:
-                start_detector = timeit.default_timer()
+                start_time = timeit.default_timer()
                 kp_ = algorithm[0].detect(images_[id1],None)
-                end_detector = timeit.default_timer()
 
-                with open('detector_time.txt','a+') as file:
-                    file.write('{}:{}\n'.format(detector_name,end_detector-start_detector))
-
-                start_descriptor = timeit.default_timer()
                 kp_, des_ = algorithm[1].compute(images_[id1], kp_)
-                end_descriptor = timeit.default_timer()
+                end_time = timeit.default_timer()
 
-                with open('descriptor_time.txt','a+') as file:
-                    file.write('{}:{}\n'.format(descriptor_name,end_descriptor-start_descriptor))
+                with open('time_measures.txt','a+') as file:
+                    file.write('{},{},{}\n'.format(detector_name,
+                                                   descriptor_name,
+                                                   end_time-start_time))
             else:
                 start_detector_and_descriptor = timeit.default_timer()
                 kp, des = det.detectAndCompute(images_[id1],None)
                 end_detector_and_descriptor = timeit.default_timer()
 
-                with open('detector_and_descriptor_time.txt','a+') as file:
-                    file.write('{}:{}\n'.format(detector_name,
+                with open('time_measures.txt','a+') as file:
+                    file.write('{},{},{}\n'.format(detector_name, descriptor_name,
                         end_detector_and_descriptor-start_detector_and_descriptor))
 
             kp_np = np.array([(k.pt[0], k.pt[1], k.angle, k.size, k.response) for k in kp_])
@@ -236,6 +233,36 @@ def removeUncommonPoints(detector_name, descriptor_name, dataset_path):
         elements = dict(des_file)
         elements[nm] = des
         np.savez(folder + '/des.npz', **elements)
+
+
+def createMeTable():
+    '''
+    Loads execution times for detectors+descriptors and prints out how the
+    table should look in latex.
+    '''
+    import pandas as pd
+
+    f = open('time_measures.txt', 'r')
+
+    data = pd.read_csv('time_measures.txt', sep=",", header=None, names=['det','des','time'], index_col=None)
+
+    data['time'] = data['time'].astype('float64')
+
+    data.sort_values(by=['time','det'], inplace=True)
+    data['time'] = data['time'].round(3)
+
+    data.reset_index(inplace=True,drop=True)
+
+    tt = min(data.shape[0],10)
+    data = data.loc[:tt,:]
+
+    print('Detector & ' + ' & '.join(data['det']) + ' \\\\')
+    print('\\hline')
+    print('Descriptor & ' + ' & '.join(data['des']) + ' \\\\')
+    print('\\hline')
+    print('ME & ' + ' & '.join(data['time'].astype('str')) + ' \\\\')
+    print('\\hline')
+
 
 
 if __name__ == '__main__':
