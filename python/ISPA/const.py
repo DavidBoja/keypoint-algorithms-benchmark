@@ -12,3 +12,8 @@ SHI_TOMASI = 'shi_tomasi'
 KAZE = 'kaze'
 AKAZE = 'akaze'
 
+# descriptor-only
+FREAK = 'freak'
+
+# Det+desc template
+ALGO_TEMPLATE = '{}+{}'

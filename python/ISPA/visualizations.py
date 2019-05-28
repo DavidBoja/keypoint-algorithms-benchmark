@@ -12,6 +12,8 @@ from pprint import pprint
 from sklearn.metrics import average_precision_score
 from random import sample
 
+from const import *
+
 
 def visualizeKp(detector_name, folder_path):
     '''
@@ -128,31 +130,29 @@ def taskEvaluation(dict_of_APs,title_name='Evaluation graph'):
         names.append(alg)
         mean_ = np.mean(results)
         scores.append(mean_)
-        err.append([mean_ - min(results),max(results)- mean_])
+        err.append([mean_ - np.min(results), np.max(results)- mean_])
 
     pos = np.arange(len(dict_of_APs))
 
-
-    #plt.style.use('seaborn')
-    fig, ax1 = plt.subplots(figsize=(10,10))
+    fig, ax1 = plt.subplots(ncols=3, figsize=(10,10))
     fig.subplots_adjust(left=0.115, right=0.88)
 
 
-    ax1.barh(pos, scores,
+    ax1[0].barh(pos, scores,
              align='center',
              height=0.5,
              tick_label=names,
              color=seaborn.color_palette("Set2"),
-             xerr=np.array(err).T)
+             xerr=np.array(err).T,
+             capsize=5.)
     plt.xlim([0, 1])
-    ax2 = ax1.twinx()
+    ax2 = ax1[0].twinx()
     ax2.set_yticks(pos)
-    ax2.set_ylim(ax1.get_ylim())
+    ax2.set_ylim(ax1[0].get_ylim())
     ax2.set_yticklabels(scores)
 
-    ax1.set_title(title_name)
+    ax1[0].set_title(title_name)
     plt.savefig(title_name.replace(' ','_') + '.pdf', format='pdf')
-    #plt.show()
 
 
 if __name__ == '__main__':
@@ -171,16 +171,18 @@ if __name__ == '__main__':
     # args = parser_of_args.parse_args()
 
     # visualizeKp(args.detector_name, args.folder_path)
-    # topNrMatches(args.detector_name, args.descriptor_name, args.folder_path, args.nr_matches)
+    # topNrMatches(args.detector_name, args.descriptor_name, args.folder_path, args.nr_matches) 
 
-    dict_of_APs = {'mmaP1': list(np.random.rand(5)),
-               'mmaP2' : list(np.random.rand(5)),
-               'mmaP3' : list(np.random.rand(5)),
-               'mmaP4' : list(np.random.rand(5)),
-               'mmaP5' : list(np.random.rand(5)),
-               'mmaP6' : list(np.random.rand(5)),
-               'mmaP7' : list(np.random.rand(5)),
-               'mmaP8' : list(np.random.rand(5))}
+    dict_of_APs = { 
+                    SIFT: np.random.rand(5),
+                    SURF : np.random.rand(5),
+                    BRISK : np.random.rand(5),
+                    BRIEF : np.random.rand(5),
+                    ORB : np.random.rand(5),
+                    ALGO_TEMPLATE.format(SIFT, SURF) : np.random.rand(5),
+                    ALGO_TEMPLATE.format(BRISK, BRIEF) : np.random.rand(5),
+                    SHI_TOMASI : np.random.rand(5)
+                  }
 
 
     taskEvaluation(dict_of_APs,'Random graf')
