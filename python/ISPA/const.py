@@ -17,3 +17,13 @@ FREAK = 'freak'
 
 # Det+desc template
 ALGO_TEMPLATE = '{}+{}'
+
+####################
+# EVALUATION TASKS #
+####################
+
+VERIFICATION = 'Verification'
+MATCHING = 'Matching'
+RETRIEVAL = 'Retrieval'
+
+TASKS = [VERIFICATION, MATCHING, RETRIEVAL]
