@@ -13,22 +13,23 @@ from sklearn.metrics import average_precision_score
 from random import sample
 
 from own_implementations import HarrisMataHarris, ShiTomasi
+from const import *
 
-all_detectors = {'sift':cv2.xfeatures2d.SIFT_create,
-                 'surf':cv2.xfeatures2d.SURF_create,
-                 'ORB':cv2.ORB_create,
-                 'fast':cv2.FastFeatureDetector_create,
-                 'brisk':cv2.BRISK_create,
-                 'harris':HarrisMataHarris,
-                 'shi_tomasi':ShiTomasi,
-                 'kaze':cv2.KAZE_create}
+all_detectors = { SIFT: cv2.xfeatures2d.SIFT_create,
+                  SURF: cv2.xfeatures2d.SURF_create,
+                  ORB: cv2.ORB_create,
+                  FAST: cv2.FastFeatureDetector_create,
+                  BRISK: cv2.BRISK_create,
+                  HARRIS: HarrisMataHarris,
+                  SHI_TOMASI: ShiTomasi,
+                  KAZE: cv2.KAZE_create}
 
-all_descriptors = {'sift':cv2.xfeatures2d.SIFT_create,
-                   'surf':cv2.xfeatures2d.SURF_create,
-                   'ORB':cv2.ORB_create,
-                   'brisk':cv2.BRISK_create,
-                   'freak':cv2.xfeatures2d.FREAK_create,
-                   'kaze':cv2.KAZE_create}
+all_descriptors = { SIFT: cv2.xfeatures2d.SIFT_create,
+                    SURF: cv2.xfeatures2d.SURF_create,
+                    ORB: cv2.ORB_create,
+                    BRISK: cv2.BRISK_create,
+                    FREAK: cv2.xfeatures2d.FREAK_create,
+                    KAZE: cv2.KAZE_create}
 
 
 def alreadyCompiledKeypoints(dataset_path):

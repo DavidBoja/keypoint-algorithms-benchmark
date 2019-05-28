@@ -151,7 +151,7 @@ def taskEvaluation(dict_of_APs,title_name='Evaluation graph'):
     ax2.set_yticklabels(scores)
 
     ax1.set_title(title_name)
-    plt.savefig(title_name.replace(' ','_') + '.png')
+    plt.savefig(title_name.replace(' ','_') + '.pdf', format='pdf')
     #plt.show()
 
 
