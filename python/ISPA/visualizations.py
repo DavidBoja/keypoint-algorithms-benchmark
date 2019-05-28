@@ -135,8 +135,8 @@ def taskEvaluation(dict_of_APs):
 
     pos = np.arange(len(dict_of_APs))
 
-    fig, ax1 = plt.subplots(ncols=3, figsize=(10,10))
-    fig.subplots_adjust(left=0.1, right=0.9, wspace=0.4)
+    fig, ax1 = plt.subplots(ncols=3, figsize=(10,5))
+    fig.subplots_adjust(left=0.12, right=0.92, top=0.95, bottom=0.05, wspace=0.4)
 
 
     for i in range(3):
