@@ -136,7 +136,7 @@ def taskEvaluation(dict_of_APs):
     pos = np.arange(len(dict_of_APs))
 
     fig, ax1 = plt.subplots(ncols=3, figsize=(10,10))
-    fig.subplots_adjust(left=0.1, right=0.9)
+    fig.subplots_adjust(left=0.1, right=0.9, wspace=0.4)
 
 
     for i in range(3):
@@ -150,10 +150,10 @@ def taskEvaluation(dict_of_APs):
                 xerr=np.array(err).T,
                 capsize=5.)
         plt.xlim([0, 1])
-        #ax2 = ax1[i].twinx()
-        #ax2.set_yticks(pos)
-        #ax2.set_ylim(ax1[i].get_ylim())
-        #ax2.set_yticklabels(scores)
+        ax2 = ax1[i].twinx()
+        ax2.set_yticks(pos)
+        ax2.set_ylim(ax1[i].get_ylim())
+        ax2.set_yticklabels(['{}%'.format(s) for s in scores])
 
         ax1[i].set_title(TASKS[i])
     plt.savefig('graph.pdf', format='pdf')
