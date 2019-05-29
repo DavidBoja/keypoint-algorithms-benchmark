@@ -115,25 +115,36 @@ def topNrMatches(detector_name, descriptor_name, folder_path, nr_matches):
     plt.show()
 
 
+def processResultDict(dic):
+
+    name = []
+    score = []
+    error = []
+
+    for alg,results in dic.items():
+        name.append(alg)
+        mean_ = np.mean(results)
+        score.append(float('{0:.2f}'.format(mean_)))
+        error.append([float('{0:.2f}'.format(mean_ - np.min(results))),
+                      float('{0:.2f}'.format(np.max(results) - mean_))])
+
+    return name,score,error
+
+
 def taskEvaluation(dict_of_APs):
     '''
     Returns a barchart with the keys of the dict_of_APs as names of algorithms
     and height as mAP from dict_of_APs values. Aditionally plot dots for min
     and max values on barchart.
     '''
+    names = {}
+    scores = {}
+    err = {}
 
-    names = []
-    scores = []
-    err = []
+    for i in range(3):
+        names[i], scores[i], err[i] = processResultDict(dict_of_APs[i])
 
-    for alg,results in dict_of_APs.items():
-        names.append(alg)
-        mean_ = np.mean(results)
-        scores.append(float('{0:.2f}'.format(mean_)))
-        err.append([float('{0:.2f}'.format(mean_ - np.min(results))), 
-                    float('{0:.2f}'.format(np.max(results) - mean_))])
-
-    pos = np.arange(len(dict_of_APs))
+    pos = np.arange(len(names[0]))
 
     fig, ax1 = plt.subplots(ncols=3, figsize=(10,5))
     fig.subplots_adjust(left=0.12, right=0.92, top=0.95, bottom=0.05, wspace=0.4)
@@ -141,19 +152,19 @@ def taskEvaluation(dict_of_APs):
 
     for i in range(3):
         ax1[i].barh(
-                pos, 
-                scores,
+                pos,
+                scores[i],
                 align='center',
                 height=0.5,
-                tick_label=names if i == 0 else ['' for _ in range(len(dict_of_APs))],
+                tick_label=names[i] if i == 0 else ['' for _ in range(len(names[0]))],
                 color=seaborn.color_palette("Set2"),
-                xerr=np.array(err).T,
+                xerr=np.array(err[i]).T,
                 capsize=5.)
         plt.xlim([0, 1])
         ax2 = ax1[i].twinx()
         ax2.set_yticks(pos)
         ax2.set_ylim(ax1[i].get_ylim())
-        ax2.set_yticklabels(['{}%'.format(s) for s in scores])
+        ax2.set_yticklabels(['{}%'.format(s) for s in scores[i]])
 
         ax1[i].set_title(TASKS[i])
     plt.savefig('graph.pdf', format='pdf')
@@ -161,6 +172,7 @@ def taskEvaluation(dict_of_APs):
 
 if __name__ == '__main__':
     import argparse
+    import collections
 
     # parser_of_args = argparse.ArgumentParser(description='Visualize keypoints and graphs')
     # parser_of_args.add_argument('detector_name', type=str,
@@ -175,18 +187,46 @@ if __name__ == '__main__':
     # args = parser_of_args.parse_args()
 
     # visualizeKp(args.detector_name, args.folder_path)
-    # topNrMatches(args.detector_name, args.descriptor_name, args.folder_path, args.nr_matches) 
+    # topNrMatches(args.detector_name, args.descriptor_name, args.folder_path, args.nr_matches)
 
-    dict_of_APs = { 
-                    SIFT: np.random.rand(5),
-                    SURF : np.random.rand(5),
-                    BRISK : np.random.rand(5),
-                    BRIEF : np.random.rand(5),
-                    ORB : np.random.rand(5),
-                    ALGO_TEMPLATE.format(SIFT, SURF) : np.random.rand(5),
-                    ALGO_TEMPLATE.format(BRISK, BRIEF) : np.random.rand(5),
-                    SHI_TOMASI : np.random.rand(5)
-                  }
+    # dict_of_APs = {
+    #                 SIFT: np.random.rand(5),
+    #                 SURF : np.random.rand(5),
+    #                 BRISK : np.random.rand(5),
+    #                 BRIEF : np.random.rand(5),
+    #                 ORB : np.random.rand(5),
+    #                 ALGO_TEMPLATE.format(SIFT, SURF) : np.random.rand(5),
+    #                 ALGO_TEMPLATE.format(BRISK, BRIEF) : np.random.rand(5),
+    #                 SHI_TOMASI : np.random.rand(5)
+    #               }
 
+    pV = collections.OrderedDict()
+    with open('pV.txt','r') as f:
+        for line in f:
+            name = line.split(':')[0]
+            l = line.split(':')[1].split('[')[1].split(']')[0].split(',')
+            l = [float(l_) for l_ in l]
+            pV[name] = l
+
+    iM = collections.OrderedDict()
+    with open('iM.txt','r') as f:
+        for line in f:
+            name = line.split(':')[0]
+            l = line.split(':')[1].split('[')[1].split(']')[0].split(',')
+            l = [float(l_) for l_ in l]
+            iM[name] = l
+
+    pR = collections.OrderedDict()
+    with open('pR.txt','r') as f:
+        for line in f:
+            name = line.split(':')[0]
+            l = line.split(':')[1].split('[')[1].split(']')[0].split(',')
+            l = [float(l_) for l_ in l]
+            pR[name] = l
+
+    dict_of_APs = {}
+    dict_of_APs[0] = pV
+    dict_of_APs[1] = iM
+    dict_of_APs[2] = pR
 
     taskEvaluation(dict_of_APs)
