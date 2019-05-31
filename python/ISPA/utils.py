@@ -15,22 +15,6 @@ from random import sample
 from own_implementations import HarrisMataHarris, ShiTomasi
 from const import *
 
-all_detectors = { SIFT: cv2.xfeatures2d.SIFT_create,
-                  SURF: cv2.xfeatures2d.SURF_create,
-                  ORB: cv2.ORB_create,
-                  FAST: cv2.FastFeatureDetector_create,
-                  BRISK: cv2.BRISK_create,
-                  HARRIS: HarrisMataHarris,
-                  SHI_TOMASI: ShiTomasi,
-                  KAZE: cv2.KAZE_create}
-
-all_descriptors = { SIFT: cv2.xfeatures2d.SIFT_create,
-                    SURF: cv2.xfeatures2d.SURF_create,
-                    ORB: cv2.ORB_create,
-                    BRISK: cv2.BRISK_create,
-                    FREAK: cv2.xfeatures2d.FREAK_create,
-                    KAZE: cv2.KAZE_create}
-
 
 def alreadyCompiledKeypoints(dataset_path):
     '''
@@ -260,10 +244,21 @@ def createMeTable():
     print('\\hline')
     print('Descriptor & ' + ' & '.join(data['des']) + ' \\\\')
     print('\\hline')
-    print('ME & ' + ' & '.join(data['time'].astype('str')) + ' \\\\')
+    print('Time & ' + ' & '.join(data['time'].astype('str')) + ' \\\\')
     print('\\hline')
 
 
+def read_keypoints(folder, detector_name, descriptor_name):
+    # Get keypoints for the sequence
+    kp_all = np.load(folder + '/kp.npz')
+    kp = list(kp_all[detector_name])
+
+    # Get descriptors for the sequence
+    des_all = np.load(folder + '/des.npz')
+    nm = detector_name + '_' + descriptor_name
+    des = list(des_all[nm])
+
+    return kp, des
 
 if __name__ == '__main__':
     import argparse

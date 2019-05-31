@@ -9,7 +9,8 @@ import os
 from sklearn.metrics import average_precision_score
 from random import sample
 
-from utils import getTransformations
+from utils import getTransformations, read_keypoints
+from const import *
 
 
 
@@ -25,45 +26,33 @@ def patchVerification(detector_name, descriptor_name, n, dataset_path, nr_of_ite
     transformations = getTransformations(dataset_path)
     folders = glob.glob(dataset_path)
     list_of_APs = []
+    list_of_APs_i = []
+    list_of_APs_v = []
 
     for i in range(nr_of_iterations):
         y = []
+        y_i = []
+        y_v = []
         s = []
+        s_i = []
+        s_v = []
 
-        for id1, folder in enumerate(folders):
+        for folder_id, folder in enumerate(folders):
 
             folder_name = folder.split('/')[-1]
 
-            # get keypoints from sequence in folder
-            kp = np.load(folder + '/kp.npz')
-            kp = kp[detector_name]
-            kp = list(kp)
-            print([kp_.shape for kp_ in kp])
-
-            # get descriptors from sequence in folder
-            des = np.load(folder + '/des.npz')
-            nm = detector_name + '_' + descriptor_name
-            des = des[nm]
-            des = list(des)
+            # get keypoints and descriptors from sequence in folder
+            kp, des = read_keypoints(folder, detector_name, descriptor_name)
 
             # get keypoints from next folder
-            if id1 != (len(folders)-1):
-                next_folder = folders[id1+1]
-            else:
-                next_folder = folders[0]
-
-            kp_next = np.load(next_folder + '/kp.npz')
-            kp_next = kp_next[detector_name]
-            kp_next = list(kp_next)
-
-            des_next = np.load(next_folder + '/des.npz')
-            nm = detector_name + '_' + descriptor_name
-            des_next = des_next[nm]
-            des_next = list(des_next)
+            next_folder = folders[(folder_id + 1) % len(folders)]
+            kp_next, des_next = read_keypoints(next_folder,
+                                               detector_name,
+                                               descriptor_name)
 
             # printout
-            print('Working on folder {} \
-                  --> next_folder {}'.format(folder_name, next_folder.split('/')[-1]))
+            print('pV: Working on folders {}--{}'.format(folder_name,
+                                                         next_folder.split('/')[-1]))
 
             # check if ref image has no keypoints and skip evaluation of sequence
             if 0 == kp[0].shape[0]:
@@ -84,7 +73,7 @@ def patchVerification(detector_name, descriptor_name, n, dataset_path, nr_of_ite
             for id1, dess in enumerate(des[1:]):
 
                 # match ref image and sequence image
-                bf = cv2.BFMatcher(cv2.NORM_L2)
+                bf = cv2.BFMatcher(descriptor_distance[descriptor_name])
                 matches = bf.match(x_des,
                                    dess)
 
@@ -94,6 +83,10 @@ def patchVerification(detector_name, descriptor_name, n, dataset_path, nr_of_ite
 
                 # measure s with which we rank the AP
                 s += [m.distance for m in matches]
+                if 'i_' in folder_name:
+                    s_i += [m.distance for m in matches]
+                else:
+                    s_v += [m.distance for m in matches]
 
                 # image every keypoint from ref image to sequence image
                 # we get Hx points as columns, 3xn matrix (third row are 1 -
@@ -114,41 +107,49 @@ def patchVerification(detector_name, descriptor_name, n, dataset_path, nr_of_ite
                     dist_ = np.sqrt(np.sum((diff)**2,axis=0))
                     if (dist_ < distances[i]).any():
                         y.append(-1)
+                        if 'i_' in folder_name:
+                            y_i.append(-1)
+                        else:
+                            y_v.append(-1)
                     else:
                         y.append(1)
+                        if 'i_' in folder_name:
+                            y_i.append(1)
+                        else:
+                            y_v.append(1)
 
             # iterate over descriptors of non-sequence images
             for id2, dess in enumerate(des_next[1:]):
-                bf = cv2.BFMatcher(cv2.NORM_L2)
+                bf = cv2.BFMatcher(descriptor_distance[descriptor_name])
                 matches = bf.match(x_des,
                                    dess)
 
                 s += [m.distance for m in matches]
                 y += [-1 for m in matches]
 
+                if 'i_' in folder_name:
+                    s_i += [m.distance for m in matches]
+                    y_i += [-1 for m in matches]
+                else:
+                    s_v += [m.distance for m in matches]
+                    y_v += [-1 for m in matches]
+
+
 
         s2 = [-s_ for s_ in s]
         AP = average_precision_score(y,s2)
         list_of_APs.append(AP)
 
-        # print result for every iteration
-        # print('| x | {} | {} | {} | {} | {} | {} | {} |'.format(detector_name,
-        #                                                         descriptor_name,
-        #                                                         AP,
-        #                                                         n,
-        #                                                         y.count(1),
-        #                                                         y.count(-1),
-        #                                                         n*5*len(folders)))
+        s_i = [-s_ for s_ in s_i]
+        AP_i = average_precision_score(y_i,s_i)
+        list_of_APs_i.append(AP_i)
 
-    #mAP = sum(list_of_APs) / len(list_of_APs)
+        s_v = [-s_ for s_ in s_v]
+        AP_v = average_precision_score(y_v,s_v)
+        list_of_APs_v.append(AP_v)
 
-    with open('patchVerification.txt','a+') as file:
-        file.write('det: {} | des: {} | list_of_APs: {} |'.format(detector_name,
-                                                                            descriptor_name,
-                                                                            list_of_APs
-                                                                            ))
 
-    return list_of_APs
+    return list_of_APs, list_of_APs_i, list_of_APs_v
 
 
 def imageMatching(detector_name, descriptor_name, n, dataset_path, nr_of_iterations=1):
@@ -163,28 +164,22 @@ def imageMatching(detector_name, descriptor_name, n, dataset_path, nr_of_iterati
     transformations = getTransformations(dataset_path)
     folders = glob.glob(dataset_path)
     list_of_mAPs = []
-    list_of_all_APs = []
+    list_of_mAPs_i = []
+    list_of_mAPs_v = []
 
     for i in range(nr_of_iterations):
 
         list_of_APs = []
+        list_of_APs_i = []
+        list_of_APs_v = []
 
-        for id1, folder in enumerate(folders):
+        for folder in folders:
 
             folder_name = folder.split('/')[-1]
-            print('Working on folder {}'.format(folder_name,))
+            print('iM: Working on folder {}'.format(folder_name))
 
-            # get keypoints from sequence
-            kp = np.load(folder + '/kp.npz')
-            kp = kp[detector_name]
-            kp = list(kp)
-
-            # get descriptors from sequence
-            des = np.load(folder + '/des.npz')
-            nm = detector_name + '_' + descriptor_name
-            des = des[nm]
-            des = list(des)
-
+            # get keypoints and descriptors from sequence
+            kp, des = read_keypoints(folder, detector_name, descriptor_name)
 
             # if an image has no keypoints skip that evaluating sequence
             if 0 == kp[0].shape[0]:
@@ -195,7 +190,7 @@ def imageMatching(detector_name, descriptor_name, n, dataset_path, nr_of_iterati
             # random keypoints from ref image
             nr_of_indexes = min(n,kp[0].shape[0])
             random_keypoint_indexes = sample(range(kp[0].shape[0]), nr_of_indexes)
-            print('NR OF INDEXES: {}'.format(nr_of_indexes))
+            #print('NR OF INDEXES: {}'.format(nr_of_indexes))
 
 
             # define ref image
@@ -204,18 +199,19 @@ def imageMatching(detector_name, descriptor_name, n, dataset_path, nr_of_iterati
 
 
             for id1, dess in enumerate(des[1:]):
-
                 y = []
                 s = []
 
                 # match ref image and sequence image
-                bf = cv2.BFMatcher(cv2.NORM_L2)
+                bf = cv2.BFMatcher(descriptor_distance[descriptor_name])
                 matches = bf.match(x_des,
                                    dess)
 
                 # get indexes of matches
                 x_idx = [random_keypoint_indexes[m.queryIdx] for m in matches]
                 x_crtano_idx = [m.trainIdx for m in matches]
+                #print(x_crtano_idx)
+                #print(kp[id1+1].shape)
 
                 # measure s used for AP
                 s += [m.distance for m in matches]
@@ -242,32 +238,26 @@ def imageMatching(detector_name, descriptor_name, n, dataset_path, nr_of_iterati
                     else:
                         y.append(1)
 
-                # compute AP for pair of images
-                s2 = [-s_ for s_ in s]
-                AP = average_precision_score(y,s2)
-                list_of_APs.append(AP)
-                # print result for every pair of images
-                # print('| x | {} | {} | {} | {} | {} | {} | {} |'.format(detector_name,
-                #                                                         descriptor_name,
-                #                                                         AP,
-                #                                                         n,
-                #                                                         y.count(1),
-                #                                                         y.count(-1),
-                #                                                         n*5*len(folders)))
+                # compute AP for pair of images if there is at least one positive match
+                # if there is no positive match the AP will be nan so we cant compute mAP
+                if 1 in y:
+                    s2 = [-s_ for s_ in s]
+                    AP = average_precision_score(y,s2)
+                    list_of_APs.append(AP)
+                    if 'i_' in folder_name:
+                        list_of_APs_i.append(AP)
+                    else:
+                        list_of_APs_v.append(AP)
 
+        if list_of_APs:
+            list_of_mAPs.append(sum(list_of_APs) / len(list_of_APs))
+            list_of_mAPs_i.append(sum(list_of_APs_i) / len(list_of_APs_i))
+            list_of_mAPs_v.append(sum(list_of_APs_v) / len(list_of_APs_v))
+        else:
+            list_of_mAPs.append(0)
+            list_of_all_APs.append(list_of_APs)
 
-
-
-        list_of_mAPs.append(sum(list_of_APs) / len(list_of_APs))
-        list_of_all_APs.append(list_of_APs)
-
-    with open('imageMatching.txt','a+') as file:
-        file.write('det: {} | des: {} | list_of_all_APs: {} | list_of_mAPs: {} |'.format(detector_name,
-                                                                                           descriptor_name,
-                                                                                           list_of_all_APs,
-                                                                                           list_of_mAPs))
-
-    return list_of_all_APs, list_of_mAPs
+    return list_of_mAPs, list_of_mAPs_i, list_of_mAPs_v
 
 
 def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterations=1):
@@ -282,47 +272,30 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
     transformations = getTransformations(dataset_path)
     folders = glob.glob(dataset_path)
     list_of_mAPs = []
-    list_of_all_APs = []
+    list_of_mAPs_i = []
+    list_of_mAPs_v = []
 
     for i in range(nr_of_iterations):
 
         list_of_APs = []
+        list_of_APs_i = []
+        list_of_APs_v = []
 
-        for id1, folder in enumerate(folders):
-
-            # y = []
-            # s = []
+        for folder_id, folder in enumerate(folders):
 
             folder_name = folder.split('/')[-1]
 
-            # get keypoints from sequence in folder
-            kp = np.load(folder + '/kp.npz')
-            kp = kp[detector_name]
-            kp = list(kp)
-            print([kp_.shape for kp_ in kp])
-
-            # get descriptors from sequence in folder
-            des = np.load(folder + '/des.npz')
-            nm = detector_name + '_' + descriptor_name
-            des = des[nm]
-            des = list(des)
+            # get keypoints and descriptors from sequence in folder
+            kp, des = read_keypoints(folder, detector_name, descriptor_name)
 
             # get keypoints from next folder
-            if id1 != (len(folders)-1):
-                next_folder = folders[id1+1]
-            else:
-                next_folder = folders[0]
+            next_folder = folders[(folder_id + 1) % len(folders)]
+            kp_next, des_next = read_keypoints(next_folder,
+                                               detector_name,
+                                               descriptor_name)
 
-            print('Working on folder {} --> next_folder {}'.format(folder_name,next_folder.split('/')[-1]))
-
-            kp_next = np.load(next_folder + '/kp.npz')
-            kp_next = kp_next[detector_name]
-            kp_next = list(kp_next)
-
-            des_next = np.load(next_folder + '/des.npz')
-            nm = detector_name + '_' + descriptor_name
-            des_next = des_next[nm]
-            des_next = list(des_next)
+            print('pR: Working on folders {}--{}'.format(folder_name,
+                                                         next_folder.split('/')[-1]))
 
             # check if an image has no keypoints and skip that evaluating sequence
             if 0 == kp[0].shape[0]:
@@ -333,7 +306,7 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
             # random keypoints from ref image
             nr_of_indexes = min(n,kp[0].shape[0])
             random_keypoint_indexes = sample(range(kp[0].shape[0]), nr_of_indexes)
-            print('NR OF INDEXES: {}'.format(nr_of_indexes))
+            #print('NR OF INDEXES: {}'.format(nr_of_indexes))
 
             # create dict which saves y and s for every keypoint separately
             y = {}
@@ -357,7 +330,7 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
                 imaged_points_normal = imaged_points/imaged_points[2,:]
 
 
-                # for every column in Hx, find its closes kp on the sequence image
+                # for every column in Hx, find its closest kp on the sequence image
                 for i in range(imaged_points_normal.shape[1]):
                     # computing distance between all kp and finding the minimal
                     dist = kp[id1+1][:,[0,1]].T - imaged_points_normal[[0,1],i].reshape(2,1)
@@ -366,24 +339,29 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
                     #closest_keypoint = kp[id1+1][index_of_closest_kp,:]
 
                     y[i].append(1)
-                    # TODO: ADD cv2.HAMMING distance for binary detectors
+                    # find distance between descriptors and save as measure s
                     index_in_orig_kp0 = random_keypoint_indexes[i]
-                    descriptors_distance = dess[index_of_closest_kp,:] - des[0][index_in_orig_kp0,:]
-                    s[i].append(np.sqrt(np.sum((descriptors_distance)**2,axis=0)))
+                    descriptors_distance = cv2.norm(dess[index_of_closest_kp,:],
+                                                    des[0][index_in_orig_kp0,:],
+                                                    descriptor_distance[descriptor_name])
+                    s[i].append(descriptors_distance)
 
 
+            # images out of the sequence
+            for dess in des_next[1:]:
 
-            for id2, dess in enumerate(des_next[1:]):
-                bf = cv2.BFMatcher(cv2.NORM_L2)
+                # obtain random points from second image
+                how_many = min(n,dess.shape[0])
+                random_keypoint_indexes_right_img = sample(range(dess.shape[0]), how_many)
+
+                # match points
+                bf = cv2.BFMatcher(descriptor_distance[descriptor_name])
                 matches = bf.match(x_des,
-                                   dess)
+                                   dess[random_keypoint_indexes_right_img,:])
 
                 for m in matches:
                     s[m.queryIdx].append(m.distance)
                     y[m.queryIdx].append(-1)
-
-                # s += [m.distance for m in matches]
-                # y += [-1 for m in matches]
 
 
             # after iterating over sequence, compute AP
@@ -391,26 +369,17 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
                 s2 = [-s_ for s_ in s[i]]
                 AP = average_precision_score(y[i],s2)
                 list_of_APs.append(AP)
-                list_of_all_APs.append(AP)
 
-            # print result for every sequence
-            # print('| x | {} | {} | {} | {} | {} | {} | {} |'.format(detector_name,
-            #                                                         descriptor_name,
-            #                                                         AP,
-            #                                                         n,
-            #                                                         y.count(1),
-            #                                                         y.count(-1),
-            #                                                         n*5*len(folders)))
+                if 'i_' in folder_name:
+                    list_of_APs_i.append(AP)
+                else:
+                    list_of_APs_v.append(AP)
 
         list_of_mAPs.append(sum(list_of_APs) / len(list_of_APs))
+        list_of_mAPs_i.append(sum(list_of_APs_i) / len(list_of_APs_i))
+        list_of_mAPs_v.append(sum(list_of_APs_v) / len(list_of_APs_v))
 
-    with open('patchRetrieval.txt','a+') as file:
-        file.write('det: {} | des: {} | list_of_APs: {} | list_of_mAPs: {} |'.format(detector_name,
-                                                                                     descriptor_name,
-                                                                                     list_of_all_APs,
-                                                                                     list_of_mAPs))
-
-    return list_of_all_APs, list_of_mAPs
+    return list_of_mAPs, list_of_mAPs_i, list_of_mAPs_v
 
 
 if __name__ == '__main__':
@@ -439,14 +408,14 @@ if __name__ == '__main__':
                                        args.dataset_path,
                                        args.nr_of_iterations)
 
-    list_of_all_APs_iM, list_of_mAPs_iM = imageMatching(args.detector_name,
-                                                        args.descriptor_name,
-                                                        args.n,
-                                                        args.dataset_path,
-                                                        args.nr_of_iterations)
+    list_of_mAPs_iM, list_of_mAPs_i_iM, list_of_mAPs_v_iM = imageMatching(args.detector_name,
+                                                                          args.descriptor_name,
+                                                                          args.n,
+                                                                          args.dataset_path,
+                                                                          args.nr_of_iterations)
 
-    list_of_all_APs_pR, list_of_mAPs_pR = patchRetrieval(args.detector_name,
-                                                         args.descriptor_name,
-                                                         args.n,
-                                                         args.dataset_path,
-                                                         args.nr_of_iterations)
+    list_of_mAPs_pR, list_of_mAPs_i_pR, list_of_mAPs_v_pR = patchRetrieval(args.detector_name,
+                                                                           args.descriptor_name,
+                                                                           args.n,
+                                                                           args.dataset_path,
+                                                                           args.nr_of_iterations)

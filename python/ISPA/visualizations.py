@@ -14,6 +14,20 @@ from random import sample
 
 from const import *
 
+def processLine(line):
+    name = line.split('|')[0]
+
+    all = line.split('|')[1].split('[')[1].split(']')[0].split(',')
+    all = [float(a_) for a_ in all]
+
+    illumination = line.split('|')[2].split('[')[1].split(']')[0].split(',')
+    illumination = [float(i_) for i_ in illumination]
+
+    viewpoint = line.split('|')[3].split('[')[1].split(']')[0].split(',')
+    viewpoint = [float(v_) for v_ in viewpoint]
+
+    return name, all, illumination, viewpoint
+
 
 def visualizeKp(detector_name, folder_path):
     '''
@@ -118,17 +132,26 @@ def topNrMatches(detector_name, descriptor_name, folder_path, nr_matches):
 def processResultDict(dic):
 
     name = []
-    score = []
-    error = []
+    all = []
+    i_ = []
+    v_ = []
 
     for alg,results in dic.items():
         name.append(alg)
-        mean_ = np.mean(results)
-        score.append(float('{0:.2f}'.format(mean_)))
-        error.append([float('{0:.2f}'.format(mean_ - np.min(results))),
-                      float('{0:.2f}'.format(np.max(results) - mean_))])
 
-    return name,score,error
+        mean_ = np.mean(results['a'])
+        all.append(float('{0:.2f}'.format(mean_)))
+
+        mean_ = np.mean(results['i'])
+        i_.append(float('{0:.2f}'.format(mean_)))
+
+        mean_ = np.mean(results['v'])
+        v_.append(float('{0:.2f}'.format(mean_)))
+
+        # error.append([float('{0:.2f}'.format(mean_ - np.min(results))),
+        #               float('{0:.2f}'.format(np.max(results) - mean_))])
+
+    return name, all, i_, v_
 
 
 def taskEvaluation(dict_of_APs):
@@ -138,11 +161,12 @@ def taskEvaluation(dict_of_APs):
     and max values on barchart.
     '''
     names = {}
-    scores = {}
-    err = {}
+    all = {}
+    i_ = {}
+    v_ = {}
 
     for i in range(3):
-        names[i], scores[i], err[i] = processResultDict(dict_of_APs[i])
+        names[i], all[i], i_[i], v_[i]  = processResultDict(dict_of_APs[i])
 
     pos = np.arange(len(names[0]))
 
@@ -153,18 +177,23 @@ def taskEvaluation(dict_of_APs):
     for i in range(3):
         ax1[i].barh(
                 pos,
-                scores[i],
+                all[i],
                 align='center',
                 height=0.5,
                 tick_label=names[i] if i == 0 else ['' for _ in range(len(names[0]))],
                 color=seaborn.color_palette("Set2"),
-                xerr=np.array(err[i]).T,
-                capsize=5.)
+                #xerr=np.array(err[i]).T,
+                capsize=5.,
+                zorder=1)
         plt.xlim([0, 1])
         ax2 = ax1[i].twinx()
         ax2.set_yticks(pos)
         ax2.set_ylim(ax1[i].get_ylim())
-        ax2.set_yticklabels(['{}%'.format(s) for s in scores[i]])
+        ax2.set_yticklabels(['{}%'.format(s) for s in all[i]])
+
+        ax1[i].scatter(i_[i],pos,zorder=2,color='red')
+        ax1[i].scatter(v_[i],pos,zorder=2,color='blue')
+
 
         ax1[i].set_title(TASKS[i])
     plt.savefig('graph.pdf', format='pdf')
@@ -201,28 +230,31 @@ if __name__ == '__main__':
     #               }
 
     pV = collections.OrderedDict()
-    with open('pV.txt','r') as f:
+    with open('pV2.txt','r') as f:
         for line in f:
-            name = line.split(':')[0]
-            l = line.split(':')[1].split('[')[1].split(']')[0].split(',')
-            l = [float(l_) for l_ in l]
-            pV[name] = l
+            name, all, i_, v_ = processLine(line)
+            pV[name] = {}
+            pV[name]['a'] = all
+            pV[name]['i'] = i_
+            pV[name]['v'] = v_
 
     iM = collections.OrderedDict()
-    with open('iM.txt','r') as f:
+    with open('iM2.txt','r') as f:
         for line in f:
-            name = line.split(':')[0]
-            l = line.split(':')[1].split('[')[1].split(']')[0].split(',')
-            l = [float(l_) for l_ in l]
-            iM[name] = l
+            name, all, i_, v_ = processLine(line)
+            iM[name] = {}
+            iM[name]['a'] = all
+            iM[name]['i'] = i_
+            iM[name]['v'] = v_
 
     pR = collections.OrderedDict()
-    with open('pR.txt','r') as f:
+    with open('pR2.txt','r') as f:
         for line in f:
-            name = line.split(':')[0]
-            l = line.split(':')[1].split('[')[1].split(']')[0].split(',')
-            l = [float(l_) for l_ in l]
-            pR[name] = l
+            name, all, i_, v_ = processLine(line)
+            pR[name] = {}
+            pR[name]['a'] = all
+            pR[name]['i'] = i_
+            pR[name]['v'] = v_
 
     dict_of_APs = {}
     dict_of_APs[0] = pV
