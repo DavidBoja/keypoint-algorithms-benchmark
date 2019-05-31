@@ -402,7 +402,7 @@ if __name__ == '__main__':
     # project_root = '/home/davidboja/PycharmProjects/FER/hpatches-benchmark/python/ISPA'
     # dataset_path = project_root + '/hpatches-sequences-release/*'
 
-    list_of_APs_pV = patchVerification(args.detector_name,
+    list_of_APs_pV, _, _ = patchVerification(args.detector_name,
                                        args.descriptor_name,
                                        args.n,
                                        args.dataset_path,
