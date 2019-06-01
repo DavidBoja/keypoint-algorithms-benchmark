@@ -15,6 +15,8 @@ from random import sample
 from own_implementations import HarrisMataHarris, ShiTomasi
 from const import *
 
+TIME_MEASURES_TXT = 'time_measures_zver.txt'
+
 
 def alreadyCompiledKeypoints(dataset_path):
     '''
@@ -86,7 +88,7 @@ def createKeypoints(detector_name, descriptor_name, dataset_path, all_at_once=Fa
                 kp_, des_ = algorithm[1].compute(images_[id1], kp_)
                 end_time = timeit.default_timer()
 
-                with open('time_measures.txt','a+') as file:
+                with open(TIME_MEASURES_TXT,'a+') as file:
                     file.write('{},{},{}\n'.format(detector_name,
                                                    descriptor_name,
                                                    end_time-start_time))
@@ -95,7 +97,7 @@ def createKeypoints(detector_name, descriptor_name, dataset_path, all_at_once=Fa
                 kp, des = det.detectAndCompute(images_[id1],None)
                 end_detector_and_descriptor = timeit.default_timer()
 
-                with open('time_measures.txt','a+') as file:
+                with open(TIME_MEASURES_TXT,'a+') as file:
                     file.write('{},{},{}\n'.format(detector_name, descriptor_name,
                         end_detector_and_descriptor-start_detector_and_descriptor))
 
@@ -232,20 +234,31 @@ def createMeTable():
 
     data['time'] = data['time'].astype('float64')
 
-    data.sort_values(by=['time','det'], inplace=True)
-    data['time'] = data['time'].round(3)
+    data2 = pd.DataFrame(columns=['det','des','time'])
+    for name, df in data.groupby(['det','des']):
+        me = np.mean(df['time'])
+        data2 = data2.append(pd.Series([name[0],name[1],me],
+                                        index=['det','des','time']),
+                             ignore_index=True)
 
-    data.reset_index(inplace=True,drop=True)
+    data2.sort_values(by=['time','det'], inplace=True)
+    data2['time'] = data2['time'].round(3)
 
-    tt = min(data.shape[0],10)
-    data = data.loc[:tt,:]
+    data2.reset_index(inplace=True,drop=True)
 
-    print('Detector & ' + ' & '.join(data['det']) + ' \\\\')
+    print(data2.head())
+
+    tt = min(data2.shape[0],10)
+    data2 = data2.loc[:tt,:]
+
+    print('Detector & ' + ' & '.join(data2['det']) + ' \\\\')
     print('\\hline')
-    print('Descriptor & ' + ' & '.join(data['des']) + ' \\\\')
+    print('Descriptor & ' + ' & '.join(data2['des']) + ' \\\\')
     print('\\hline')
-    print('Time & ' + ' & '.join(data['time'].astype('str')) + ' \\\\')
+    print('Time & ' + ' & '.join(data2['time'].astype('str')) + ' \\\\')
     print('\\hline')
+
+    f.close()
 
 
 def read_keypoints(folder, detector_name, descriptor_name):

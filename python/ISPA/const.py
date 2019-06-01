@@ -41,18 +41,21 @@ all_detectors = {'sift':cv2.xfeatures2d.SIFT_create,
                  'brisk':cv2.BRISK_create,
                  'harris':HarrisMataHarris,
                  'shi_tomasi':ShiTomasi,
-                 'kaze':cv2.KAZE_create}
+                 'kaze':cv2.KAZE_create,
+                 'akaze':cv2.AKAZE_create}
 
 all_descriptors = {'sift':cv2.xfeatures2d.SIFT_create,
                    'surf':cv2.xfeatures2d.SURF_create,
                    'orb':cv2.ORB_create,
                    'brisk':cv2.BRISK_create,
                    'freak':cv2.xfeatures2d.FREAK_create,
-                   'kaze':cv2.KAZE_create}
+                   'kaze':cv2.KAZE_create,
+                   'akaze':cv2.AKAZE_create}
 
 descriptor_distance = {'sift':cv2.NORM_L2,
                        'surf':cv2.NORM_L2,
                        'orb':cv2.NORM_HAMMING2,
                        'brisk':cv2.NORM_HAMMING2,
                        'freak':cv2.NORM_HAMMING2,
-                       'kaze':cv2.NORM_L2}
+                       'kaze':cv2.NORM_L2,
+                       'akaze':cv2.NORM_HAMMING2}

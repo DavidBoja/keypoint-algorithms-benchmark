@@ -19,42 +19,34 @@ from utils import *
 from evaluations import patchVerification, imageMatching, patchRetrieval
 #from visualizations import taskEvaluation
 
-project_root = '/home/davidboja/PycharmProjects/FER/hpatches-benchmark/python/ISPA'
-dataset_path = project_root + '/hpatches-sequences-release/*'
+# project_root = '/home/davidboja/PycharmProjects/FER/hpatches-benchmark/python/ISPA'
+# dataset_path = project_root + '/hpatches-sequences-release/*'
+dataset_path = '/home/dbojanic/hpatches-sequences-release/*'
+
 n = 100
+nr_iterations = 5
 failed_combinations = []
 
 det_des_combinations = list(itertools.product(list(all_detectors.keys()),
                                               list(all_descriptors.keys()) )
                                               )
 
-combinations_to_remove = [(ORB, SIFT),
-                          (ORB, SURF),
-                          (ORB, BRISK),
-                          (ORB, FREAK),
-                          (ORB, KAZE),
-                          (SIFT,ORB),
-                          (SURF,ORB),
-                          (FAST,ORB),
-                          (BRISK,ORB),
-                          (HARRIS,ORB),
-                          (SHI_TOMASI,ORB),
-                          (KAZE,ORB),
+combinations_to_remove = [(ORB, SIFT),(ORB, SURF),(ORB, BRISK),(ORB, FREAK),(ORB, KAZE),(ORB,AKAZE),
+                          (SIFT,ORB),(SURF,ORB),(FAST,ORB),(BRISK,ORB),(HARRIS,ORB),(SHI_TOMASI,ORB),(KAZE,ORB),(AKAZE,ORB),
+                          (KAZE, SIFT),(KAZE, SURF),(KAZE, BRISK),(KAZE, FREAK),(KAZE, AKAZE),
+                          (SIFT,KAZE),(SURF,KAZE),(FAST,KAZE),(BRISK,KAZE),(HARRIS,KAZE),(SHI_TOMASI,KAZE),
+                          (AKAZE, SIFT),(AKAZE, SURF),(AKAZE, BRISK),(AKAZE, FREAK),
+                          (SIFT,AKAZE),(SURF,AKAZE),(FAST,AKAZE),(BRISK,AKAZE),(HARRIS,AKAZE),(SHI_TOMASI,AKAZE)
                           ]
-# drugi_put_vrtim = [(FAST,SIFT),
-#                     (FAST,BRISK),
-#                     (SIFT,SIFT),
-#                     (SIFT,SURF),
-#                     (SIFT,BRISK),
-#                     (SIFT,FREAK),
-#                     (SURF,SIFT),
-#                     (SURF,SURF)]
+
 
 for el in combinations_to_remove:
-    det_des_combinations.remove(el)
+    try:
+        det_des_combinations.remove(el)
+    except Exception as e:
+        print('NISI IZBACIO KOMBINACIJE DEBILU')
+        print(el)
 
-# for el in drugi_put_vrtim:
-#     det_des_combinations.remove(el)
 
 
 for dett, dess in det_des_combinations:
@@ -68,7 +60,8 @@ for dett, dess in det_des_combinations:
         createKeypoints(detector_name, descriptor_name, dataset_path)
         removeUncommonPoints(detector_name, descriptor_name, dataset_path)
     except Exception as e:
-        print('ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR')
+        print('ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR!')
+        print(e)
         with open('failed_combinations.txt','a+') as file:
             file.write(detector_name + '_' + descriptor_name +'\n')
         failed_combinations.append(detector_name + '_' + descriptor_name)
@@ -79,9 +72,9 @@ for dett, dess in det_des_combinations:
                                                                   descriptor_name,
                                                                   n,
                                                                   dataset_path,
-                                                                  5)
+                                                                  nr_iterations)
 
-    with open('pV2.txt','a+') as file:
+    with open('pV_zver3.txt','a+') as file:
         file.write('{}_{}|{}|{}|{}'.format(detector_name,
                                            descriptor_name,
                                            str(list_of_APs),
@@ -92,8 +85,8 @@ for dett, dess in det_des_combinations:
                                                                  descriptor_name,
                                                                  n,
                                                                  dataset_path,
-                                                                 5)
-    with open('iM2.txt','a+') as file:
+                                                                 nr_iterations)
+    with open('iM_zver3.txt','a+') as file:
         file.write('{}_{}|{}|{}|{}'.format(detector_name,
                                            descriptor_name,
                                            str(list_of_mAPs),
@@ -104,9 +97,9 @@ for dett, dess in det_des_combinations:
                                                                   descriptor_name,
                                                                   n,
                                                                   dataset_path,
-                                                                  5)
+                                                                  nr_iterations)
 
-    with open('pR2.txt','a+') as file:
+    with open('pR_zver3.txt','a+') as file:
         file.write('{}_{}|{}|{}|{}'.format(detector_name,
                                            descriptor_name,
                                            str(list_of_mAPs),
