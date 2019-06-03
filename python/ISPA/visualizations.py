@@ -137,7 +137,7 @@ def processResultDict(dic):
     v_ = []
 
     for alg,results in dic.items():
-        name.append(alg)
+        name.append(alg.upper())
 
         mean_ = np.mean(results['a'])
         all.append(float('{0:.2f}'.format(mean_)))
@@ -164,6 +164,7 @@ def taskEvaluation(dict_of_APs):
     all = {}
     i_ = {}
     v_ = {}
+    labels = ['AP','mAP','mAP']
 
     for i in range(3):
         names[i], all[i], i_[i], v_[i]  = processResultDict(dict_of_APs[i])
@@ -171,7 +172,7 @@ def taskEvaluation(dict_of_APs):
     pos = np.arange(len(names[0]))
 
     fig, ax1 = plt.subplots(ncols=3, figsize=(10,5))
-    fig.subplots_adjust(left=0.12, right=0.92, top=0.95, bottom=0.05, wspace=0.4)
+    fig.subplots_adjust(left=0.12, right=0.92, top=0.9, bottom=0.09, wspace=0.4)
 
 
     for i in range(3):
@@ -181,7 +182,7 @@ def taskEvaluation(dict_of_APs):
                 align='center',
                 height=0.5,
                 tick_label=names[i] if i == 0 else ['' for _ in range(len(names[0]))],
-                color=seaborn.color_palette("Set2"),
+                color=seaborn.color_palette("hls", len(names[0])),#seaborn.color_palette("Paired"),#seaborn.color_palette("Set2"),
                 #xerr=np.array(err[i]).T,
                 capsize=5.,
                 zorder=1)
@@ -191,11 +192,15 @@ def taskEvaluation(dict_of_APs):
         ax2.set_ylim(ax1[i].get_ylim())
         ax2.set_yticklabels(['{}%'.format(s) for s in all[i]])
 
-        ax1[i].scatter(i_[i],pos,zorder=2,color='red')
-        ax1[i].scatter(v_[i],pos,zorder=2,color='blue')
-
+        ill = ax1[i].scatter(i_[i],pos, zorder=2, color='black', marker='x',s=15, linewidth=0.5)
+        vie = ax1[i].scatter(v_[i],pos, zorder=2, color='black', marker='<', s=10, linewidth=0.8)
 
         ax1[i].set_title(TASKS[i])
+        ax1[i].set_xlabel(labels[i])
+    plt.figlegend((ill,vie), ('viewpoint','illumination'), loc = 'upper center',
+                  ncol=2, fontsize='small')#, labelspacing=0. )
+    plt.show()
+    plt.title('AAA')
     plt.savefig('graph.pdf', format='pdf')
 
 
