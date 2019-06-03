@@ -248,6 +248,8 @@ def imageMatching(detector_name, descriptor_name, n, dataset_path, nr_of_iterati
                         list_of_APs_i.append(AP)
                     else:
                         list_of_APs_v.append(AP)
+                else:
+                    print('NO ONES IN Y!!!! {}/{}'.format(folder_name, id1))
 
         if list_of_APs:
             list_of_mAPs.append(sum(list_of_APs) / len(list_of_APs))

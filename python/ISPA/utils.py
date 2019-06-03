@@ -162,11 +162,11 @@ def removeUncommonPoints(detector_name, descriptor_name, dataset_path):
         print('#########################################')
         print('Working on folder {}'.format(folder_name))
 
-        kp_file = np.load(folder + '/kp.npz')
+        kp_file = np.load(folder + '/kp.npz', allow_pickle=True)
         kp = kp_file[detector_name]
         kp = list(kp)
 
-        des_file = np.load(folder + '/des.npz')
+        des_file = np.load(folder + '/des.npz', allow_pickle=True)
         nm = detector_name + '_' + descriptor_name
         des = des_file[nm]
         des = list(des)
@@ -272,6 +272,7 @@ def read_keypoints(folder, detector_name, descriptor_name):
     des = des_all[nm]
 
     return list(kp), list(des)
+
 
 if __name__ == '__main__':
     import argparse

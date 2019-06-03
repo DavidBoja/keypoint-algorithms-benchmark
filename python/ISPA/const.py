@@ -15,6 +15,10 @@ AKAZE = 'akaze'
 # descriptor-only
 FREAK = 'freak'
 
+# deep
+LFNET = 'lfnet'
+SUPERPOINT = 'superpoint'
+
 # Det+desc template
 ALGO_TEMPLATE = '{}_{}'
 

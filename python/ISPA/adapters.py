@@ -19,17 +19,26 @@ def adapt_lfnet():
         desc_path = join(folder_path, DESC_FILENAME)
         results_dir = join(folder_path, 'out')
 
-        kps = []
-        descs = []
+        kps = [0.] * 6
+        descs = [0.] * 6
 
         for img_result_filename in filter(lambda f: 'ppm.npz' in f, listdir(results_dir)):
+            # Take index from filename as filter() doesn't keep the order.
+            img_idx = int(img_result_filename[0])
             img_result_path = join(results_dir, img_result_filename)
-            img_result = np.load(img_result_path)
+            img_result = dict(np.load(img_result_path))
 
-            kps.append(img_result['kpts'])
-            descs.append(img_result['descs'])
+            orig_img = cv2.imread(join(folder_path, '{}.ppm'.format(img_idx)))
+            processed_img = cv2.imread(join(results_dir, '{}.ppm'.format(img_idx)))
 
-        print(kps[0].shape)
+            x_scale = float(orig_img.shape[1]) / float(processed_img.shape[1])
+            y_scale = float(orig_img.shape[0]) / float(processed_img.shape[0])
+
+            img_result['kpts'][:,0] *= x_scale
+            img_result['kpts'][:,1] *= y_scale
+
+            kps[img_idx - 1] = img_result['kpts']
+            descs[img_idx - 1] = img_result['descs']
 
         kp = dict(np.load(kp_path, allow_pickle=True)) if isfile(kp_path) else dict()
         desc = dict(np.load(desc_path, allow_pickle=True)) if isfile(desc_path) else dict()
