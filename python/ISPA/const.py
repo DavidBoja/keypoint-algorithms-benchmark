@@ -55,4 +55,13 @@ descriptor_distance = {'sift':cv2.NORM_L2,
                        'orb':cv2.NORM_HAMMING2,
                        'brisk':cv2.NORM_HAMMING2,
                        'freak':cv2.NORM_HAMMING2,
-                       'kaze':cv2.NORM_L2}
+                       'kaze':cv2.NORM_L2,
+                       # deep
+                       'lfnet':cv2.NORM_L2,
+                       'superpoint':cv2.NORM_L2}
+
+#########
+# PATHS #
+#########
+
+RESULTS_DIR = 'results/'

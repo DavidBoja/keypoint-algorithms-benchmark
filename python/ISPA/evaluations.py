@@ -382,6 +382,14 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
     return list_of_mAPs, list_of_mAPs_i, list_of_mAPs_v
 
 
+def write_result(l, f):
+    s = '['
+    for e in l:
+        s += str(e) + ', '
+    s += ']'
+    f.write(s)
+
+
 if __name__ == '__main__':
     import argparse
 
@@ -402,11 +410,11 @@ if __name__ == '__main__':
     # project_root = '/home/davidboja/PycharmProjects/FER/hpatches-benchmark/python/ISPA'
     # dataset_path = project_root + '/hpatches-sequences-release/*'
 
-    list_of_APs_pV, _, _ = patchVerification(args.detector_name,
-                                       args.descriptor_name,
-                                       args.n,
-                                       args.dataset_path,
-                                       args.nr_of_iterations)
+    list_of_APs_pV, list_of_APs_i_pV, list_of_APs_v_pV = patchVerification(args.detector_name,
+                                                         args.descriptor_name,
+                                                         args.n,
+                                                         args.dataset_path,
+                                                         args.nr_of_iterations)
 
     list_of_mAPs_iM, list_of_mAPs_i_iM, list_of_mAPs_v_iM = imageMatching(args.detector_name,
                                                                           args.descriptor_name,
@@ -419,3 +427,32 @@ if __name__ == '__main__':
                                                                            args.n,
                                                                            args.dataset_path,
                                                                            args.nr_of_iterations)
+
+    print(list_of_APs_pV)
+    print(list_of_APs_i_pV)
+    print(list_of_APs_v_pV)
+
+    print(list_of_mAPs_iM)
+    print(list_of_mAPs_i_iM)
+    print(list_of_mAPs_v_iM)
+
+    print(list_of_mAPs_pR)
+    print(list_of_mAPs_i_pR)
+    print(list_of_mAPs_v_pR)
+
+    with open(os.path.join(RESULTS_DIR, 
+        ALGO_TEMPLATE.format(args.detector_name, args.descriptor_name)), 'w+') as f:
+        f.write('Patch verification:\n')
+        write_result(list_of_APs_pV, f)
+        write_result(list_of_APs_i_pV, f)
+        write_result(list_of_APs_v_pV, f)
+        f.write('\nImage matching:\n')
+        write_result(list_of_mAPs_iM, f)
+        write_result(list_of_mAPs_i_iM, f)
+        write_result(list_of_mAPs_v_iM, f)
+        f.write('\nPatch retrieval:\n')
+        write_result(list_of_mAPs_pR, f)
+        write_result(list_of_mAPs_i_pR, f)
+        write_result(list_of_mAPs_v_pR, f)
+
+    # TODO: izbrojati broj keypointova za svaki algo i vidjeti postoji li korelacija

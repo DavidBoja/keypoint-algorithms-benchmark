@@ -250,15 +250,15 @@ def createMeTable():
 
 def read_keypoints(folder, detector_name, descriptor_name):
     # Get keypoints for the sequence
-    kp_all = np.load(folder + '/kp.npz')
-    kp = list(kp_all[detector_name])
+    kp_all = np.load(folder + '/kp.npz', allow_pickle=True)
+    kp = kp_all[detector_name]
 
     # Get descriptors for the sequence
-    des_all = np.load(folder + '/des.npz')
+    des_all = np.load(folder + '/des.npz', allow_pickle=True)
     nm = detector_name + '_' + descriptor_name
-    des = list(des_all[nm])
+    des = des_all[nm]
 
-    return kp, des
+    return list(kp), list(des)
 
 if __name__ == '__main__':
     import argparse
