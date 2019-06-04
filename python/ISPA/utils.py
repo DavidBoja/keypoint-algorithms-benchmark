@@ -168,12 +168,16 @@ def removeUncommonPoints(detector_name, descriptor_name, dataset_path):
         print('#########################################')
         print('Working on folder {}'.format(folder_name))
 
+<<<<<<< HEAD
         # load keypoints
         kp_file = np.load(folder + '/kp.npz')
+=======
+        kp_file = np.load(folder + '/kp.npz', allow_pickle=True)
+>>>>>>> edc09c5e1670bff8772de4f640622a18657d906c
         kp = kp_file[detector_name]
         kp = list(kp)
 
-        des_file = np.load(folder + '/des.npz')
+        des_file = np.load(folder + '/des.npz', allow_pickle=True)
         nm = detector_name + '_' + descriptor_name
         des = des_file[nm]
         des = list(des)
@@ -290,15 +294,16 @@ def createMeTable():
 
 def read_keypoints(folder, detector_name, descriptor_name):
     # Get keypoints for the sequence
-    kp_all = np.load(folder + '/kp.npz')
-    kp = list(kp_all[detector_name])
+    kp_all = np.load(folder + '/kp.npz', allow_pickle=True)
+    kp = kp_all[detector_name]
 
     # Get descriptors for the sequence
-    des_all = np.load(folder + '/des.npz')
+    des_all = np.load(folder + '/des.npz', allow_pickle=True)
     nm = detector_name + '_' + descriptor_name
-    des = list(des_all[nm])
+    des = des_all[nm]
 
-    return kp, des
+    return list(kp), list(des)
+
 
 
 def read_next_keypoints(detector_name, descriptor_name, folders, folder_id, m=100):

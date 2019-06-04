@@ -22,6 +22,11 @@ SUSAN = 'susan'
 # descriptor-only
 FREAK = 'freak'
 
+# deep
+LFNET = 'lfnet'
+SUPERPOINT = 'superpoint'
+D2NET = 'd2net'
+
 # Det+desc template
 ALGO_TEMPLATE = '{}_{}'
 
@@ -75,6 +80,7 @@ descriptor_distance = {'sift':cv2.NORM_L2,
                        'freak':cv2.NORM_HAMMING2,
                        'kaze':cv2.NORM_L2,
                        'akaze':cv2.NORM_HAMMING2,
+
                        'brief':cv2.NORM_HAMMING2,
                        'root_sift':cv2.NORM_L2}
 
@@ -91,6 +97,16 @@ all_at_once_dict = {'sift':False,
                     'agast':False,
                     'gftt':False,
                     'censure':False,
-                    'asift':True
+                    'asift':True,
                     #'susan':False
-                    }
+
+
+                   # deep
+                   'lfnet':cv2.NORM_L2,
+                   'superpoint':cv2.NORM_L2}
+
+#########
+# PATHS #
+#########
+
+RESULTS_DIR = 'results/'
