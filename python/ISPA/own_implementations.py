@@ -1,8 +1,12 @@
 
 
 import cv2
+import numpy as np
+import skimage.feature
+from other_algorithms.asift import affine_detect
+from other_algorithms.susan import susanCorner
 
-
+# DETECTORS
 class HarrisMataHarris():
     '''
     Wrapper for the OpenCV implementation of the Harris detector.
@@ -63,3 +67,68 @@ class ShiTomasi():
                                             _size=0))
 
         return keypoints
+
+
+class CensureClass():
+
+    def detect(self, img, mask=None):
+        keypoints = []
+
+        censure = skimage.feature.CENSURE()
+        censure.detect(img)
+
+        for i in range(censure.keypoints.shape[0]):
+              keypoints.append(cv2.KeyPoint(x=censure.keypoints[i,1],
+                                            y=censure.keypoints[i,0],
+                                            _size=0))
+
+        return keypoints
+
+
+class SusanClass():
+
+    def detect(self, img, mask=None):
+        keypoints = []
+
+        kp = susanCorner(img)
+
+        kp = np.where(kp>0)
+
+        for i in range(len(kp[0])):
+            keypoints.append(cv2.KeyPoint(x=kp[0][i],
+                                          y=kp[1][i],
+                                          _size=0))
+
+        return keypoints
+
+
+# DESCRIPTORS
+class RootSIFT:
+    def __init__(self, eps=1e-7):
+        self.eps = eps
+
+
+    def compute(self, image, kp):
+        sift = cv2.xfeatures2d.SIFT_create()
+        kp, des = sift.compute(image, kp)
+
+        if len(kp) == 0:
+            return kp, np.array([])
+
+        # apply the Hellinger kernel by first L1-normalizing and taking the
+        # square-root
+        des /= (des.sum(axis=1, keepdims=True) + self.eps)
+        des = np.sqrt(des)
+        #descs /= (np.linalg.norm(descs, axis=1, ord=2) + eps)
+
+        return kp, des
+
+
+
+# DETECTOR + DESCRIPTOR
+class ASIFTClass():
+
+    def detectAndCompute(self, img, mask=None):
+        kp, des = affine_detect(cv2.xfeatures2d.SIFT_create(), img)
+
+        return kp, des

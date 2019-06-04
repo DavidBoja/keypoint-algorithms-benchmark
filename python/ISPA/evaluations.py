@@ -9,7 +9,7 @@ import os
 from sklearn.metrics import average_precision_score
 from random import sample
 
-from utils import getTransformations, read_keypoints
+from utils import getTransformations, read_keypoints, read_next_keypoints
 from const import *
 
 
@@ -17,10 +17,10 @@ from const import *
 def patchVerification(detector_name, descriptor_name, n, dataset_path, nr_of_iterations=1):
     '''
     Task 1: Patch Verification
-    + save results to patchVerification.txt
 
     Return: list_of_APs - list of APs per iteration
-            mAP         - average AP per number of iterations
+            list_of_APs_i - list of APs per iteration for only illumination folders
+            list_of_APs_v - list of APs per iteration for only viewpoint folders
     '''
 
     transformations = getTransformations(dataset_path)
@@ -45,14 +45,15 @@ def patchVerification(detector_name, descriptor_name, n, dataset_path, nr_of_ite
             kp, des = read_keypoints(folder, detector_name, descriptor_name)
 
             # get keypoints from next folder
-            next_folder = folders[(folder_id + 1) % len(folders)]
-            kp_next, des_next = read_keypoints(next_folder,
-                                               detector_name,
-                                               descriptor_name)
+            kp_next, des_next = read_next_keypoints(detector_name, descriptor_name,
+                                                    folders, folder_id, 100)
+#             next_folder = folders[(folder_id + 1) % len(folders)]
+#             kp_next, des_next = read_keypoints(next_folder,
+#                                                detector_name,
+#                                                descriptor_name)
 
             # printout
-            print('pV: Working on folders {}--{}'.format(folder_name,
-                                                         next_folder.split('/')[-1]))
+            print('pV: Working on folder {}'.format(folder_name))
 
             # check if ref image has no keypoints and skip evaluation of sequence
             if 0 == kp[0].shape[0]:
@@ -120,6 +121,12 @@ def patchVerification(detector_name, descriptor_name, n, dataset_path, nr_of_ite
 
             # iterate over descriptors of non-sequence images
             for id2, dess in enumerate(des_next[1:]):
+
+                if 0 == dess.shape[0]:
+                    print('Image has 0 keypoints')
+                    print('SKIPPING THIS IMAGE')
+                    continue
+
                 bf = cv2.BFMatcher(descriptor_distance[descriptor_name])
                 matches = bf.match(x_des,
                                    dess)
@@ -288,20 +295,16 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
             # get keypoints and descriptors from sequence in folder
             kp, des = read_keypoints(folder, detector_name, descriptor_name)
 
-            # get keypoints from next folder
-            next_folder = folders[(folder_id + 1) % len(folders)]
-            kp_next, des_next = read_keypoints(next_folder,
-                                               detector_name,
-                                               descriptor_name)
-
-            print('pR: Working on folders {}--{}'.format(folder_name,
-                                                         next_folder.split('/')[-1]))
-
             # check if an image has no keypoints and skip that evaluating sequence
             if 0 == kp[0].shape[0]:
-                print('Folder {} has 0 keypoints for ref image'.format(folder))
+                print('Folder {} has 0 keypoints for ref image'.format(folder_name))
                 print('SKIPPING THIS FOLDER')
                 continue
+
+            # get keypoints from next folder
+            kp_next, des_next = read_next_keypoints(detector_name, descriptor_name, folders, folder_id, 100)
+
+            print('pR: Working on folders {}'.format(folder_name))
 
             # random keypoints from ref image
             nr_of_indexes = min(n,kp[0].shape[0])
@@ -349,6 +352,11 @@ def patchRetrieval(detector_name, descriptor_name, n, dataset_path, nr_of_iterat
 
             # images out of the sequence
             for dess in des_next[1:]:
+
+                if 0 == dess.shape[0]:
+                    print('Image has 0 keypoints')
+                    print('SKIPPING THIS IMAGE')
+                    continue
 
                 # obtain random points from second image
                 how_many = min(n,dess.shape[0])

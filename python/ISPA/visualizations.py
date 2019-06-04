@@ -17,6 +17,9 @@ from const import *
 def processLine(line):
     name = line.split('|')[0]
 
+    if name.split('_')[0] == name.split('_')[1]:
+        name = name.split('_')[0]
+
     all = line.split('|')[1].split('[')[1].split(']')[0].split(',')
     all = [float(a_) for a_ in all]
 
@@ -199,8 +202,8 @@ def taskEvaluation(dict_of_APs):
         ax1[i].set_xlabel(labels[i])
     plt.figlegend((ill,vie), ('viewpoint','illumination'), loc = 'upper center',
                   ncol=2, fontsize='small')#, labelspacing=0. )
-    plt.show()
-    plt.title('AAA')
+    #plt.show()
+    #plt.title('')
     plt.savefig('graph.pdf', format='pdf')
 
 
@@ -235,7 +238,15 @@ if __name__ == '__main__':
     #               }
 
     pV = collections.OrderedDict()
-    with open('pV2.txt','r') as f:
+    with open('rezultati/pV_zver3_1.txt','r') as f:
+        for line in f:
+            name, all, i_, v_ = processLine(line)
+            pV[name] = {}
+            pV[name]['a'] = all
+            pV[name]['i'] = i_
+            pV[name]['v'] = v_
+
+    with open('rezultati/pV3_bartools.txt','r') as f:
         for line in f:
             name, all, i_, v_ = processLine(line)
             pV[name] = {}
@@ -244,7 +255,15 @@ if __name__ == '__main__':
             pV[name]['v'] = v_
 
     iM = collections.OrderedDict()
-    with open('iM2.txt','r') as f:
+    with open('rezultati/iM_zver3_1.txt','r') as f:
+        for line in f:
+            name, all, i_, v_ = processLine(line)
+            iM[name] = {}
+            iM[name]['a'] = all
+            iM[name]['i'] = i_
+            iM[name]['v'] = v_
+
+    with open('rezultati/iM3_bartools.txt','r') as f:
         for line in f:
             name, all, i_, v_ = processLine(line)
             iM[name] = {}
@@ -253,7 +272,15 @@ if __name__ == '__main__':
             iM[name]['v'] = v_
 
     pR = collections.OrderedDict()
-    with open('pR2.txt','r') as f:
+    with open('rezultati/pR_zver3_1.txt','r') as f:
+        for line in f:
+            name, all, i_, v_ = processLine(line)
+            pR[name] = {}
+            pR[name]['a'] = all
+            pR[name]['i'] = i_
+            pR[name]['v'] = v_
+
+    with open('rezultati/pR3_bartools.txt','r') as f:
         for line in f:
             name, all, i_, v_ = processLine(line)
             pR[name] = {}

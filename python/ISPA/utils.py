@@ -12,10 +12,10 @@ from pprint import pprint
 from sklearn.metrics import average_precision_score
 from random import sample
 
-from own_implementations import HarrisMataHarris, ShiTomasi
+from own_implementations import HarrisMataHarris, ShiTomasi, CensureClass, RootSIFT
 from const import *
 
-TIME_MEASURES_TXT = 'time_measures_zver.txt'
+TIME_MEASURES_TXT = 'time_measures_zver_3.txt'
 
 
 def alreadyCompiledKeypoints(dataset_path):
@@ -88,14 +88,20 @@ def createKeypoints(detector_name, descriptor_name, dataset_path, all_at_once=Fa
                 kp_, des_ = algorithm[1].compute(images_[id1], kp_)
                 end_time = timeit.default_timer()
 
+                if (des_ == None).any():
+                    des_ = np.array([])
+
                 with open(TIME_MEASURES_TXT,'a+') as file:
                     file.write('{},{},{}\n'.format(detector_name,
                                                    descriptor_name,
                                                    end_time-start_time))
             else:
                 start_detector_and_descriptor = timeit.default_timer()
-                kp, des = det.detectAndCompute(images_[id1],None)
+                kp_, des_ = det.detectAndCompute(images_[id1],None)
                 end_detector_and_descriptor = timeit.default_timer()
+
+                if (des_ == None).any():
+                    des_ = np.array([])
 
                 with open(TIME_MEASURES_TXT,'a+') as file:
                     file.write('{},{},{}\n'.format(detector_name, descriptor_name,
@@ -162,6 +168,7 @@ def removeUncommonPoints(detector_name, descriptor_name, dataset_path):
         print('#########################################')
         print('Working on folder {}'.format(folder_name))
 
+        # load keypoints
         kp_file = np.load(folder + '/kp.npz')
         kp = kp_file[detector_name]
         kp = list(kp)
@@ -180,6 +187,13 @@ def removeUncommonPoints(detector_name, descriptor_name, dataset_path):
         # iterate over homographies H and image points onto sequence image
         for id2, tr in enumerate(transformations[folder_name]):
             # image points
+            if kp_.shape[0] == 0:
+                with open('missing_kp_on_ref','a+') as fl:
+                    fl.write('{}: algo with no kp on 1.ppm for folder {} and image {}.'.format(detector_name,
+                                                                                               folder_name,
+                                                                                               id2+2))
+                print('THERE ARE NO KEYPOINTS ON IMAGE 1.ppm IN FOLDER {}'.format(folder_name))
+                continue
             points = np.c_[ kp_[:,[0,1]] , np.ones(kp_.shape[0])]
             imaged_points = np.dot(tr, points.T)
             imaged_points_normal = imaged_points/imaged_points[2,:]
@@ -228,16 +242,31 @@ def createMeTable():
     '''
     import pandas as pd
 
-    f = open('time_measures.txt', 'r')
+    data = pd.read_csv('rezultati/time_measures_zver_1.txt',
+                       sep=",",
+                       header=None,
+                       names=['det','des','time'],
+                       index_col=None)
+    data1 = pd.read_csv('rezultati/time_measures_lfnet_bartools.txt',
+                       sep=",",
+                       header=None,
+                       names=['det','des','time'],
+                       index_col=None)
 
-    data = pd.read_csv('time_measures.txt', sep=",", header=None, names=['det','des','time'], index_col=None)
+    data2 = pd.read_csv('rezultati/time_measures_superpoint_bartools.txt',
+                       sep=",",
+                       header=None,
+                       names=['det','des','time'],
+                       index_col=None)
+    data = data.append(data1, ignore_index=True)
+    data = data.append(data2, ignore_index=True)
 
     data['time'] = data['time'].astype('float64')
 
     data2 = pd.DataFrame(columns=['det','des','time'])
     for name, df in data.groupby(['det','des']):
         me = np.mean(df['time'])
-        data2 = data2.append(pd.Series([name[0],name[1],me],
+        data2 = data2.append(pd.Series([name[0].upper(),name[1].upper(),me],
                                         index=['det','des','time']),
                              ignore_index=True)
 
@@ -258,8 +287,6 @@ def createMeTable():
     print('Time & ' + ' & '.join(data2['time'].astype('str')) + ' \\\\')
     print('\\hline')
 
-    f.close()
-
 
 def read_keypoints(folder, detector_name, descriptor_name):
     # Get keypoints for the sequence
@@ -272,6 +299,31 @@ def read_keypoints(folder, detector_name, descriptor_name):
     des = list(des_all[nm])
 
     return kp, des
+
+
+def read_next_keypoints(detector_name, descriptor_name, folders, folder_id, m=100):
+
+    kp_all = []
+    des_all = []
+
+    random_images = sample(range(len(folders)), m)
+
+    for ind in random_images:
+        seq = (folder_id+ind) % len(folders)
+        image_nr = ind%6
+
+        kp = np.load(folders[seq] + '/kp.npz')
+        kp = list(kp[detector_name])
+        kp = kp[image_nr]
+        kp_all.append(kp)
+
+        des = np.load(folders[seq]+'/des.npz')
+        nm = detector_name + '_' + descriptor_name
+        des = list(des[nm])
+        des = des[image_nr]
+        des_all.append(des)
+
+    return kp_all, des_all
 
 if __name__ == '__main__':
     import argparse
@@ -290,8 +342,6 @@ if __name__ == '__main__':
     # dataset_path = project_root + '/hpatches-sequences-release/*'
 
     dataset_path = args.dataset_path + '/*'
-    createKeypoints(args['detector_name'],args['descriptor_name'],args['dataset_path'])
-    removeUncommonPoints(args['detector_name'],args['descriptor_name'],args['dataset_path'])
 
     createKeypoints(args.detector_name, args.descriptor_name, dataset_path)
     removeUncommonPoints(args.detector_name, args.descriptor_name, dataset_path)
