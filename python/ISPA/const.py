@@ -18,6 +18,7 @@ FREAK = 'freak'
 # deep
 LFNET = 'lfnet'
 SUPERPOINT = 'superpoint'
+D2NET = 'd2net'
 
 # Det+desc template
 ALGO_TEMPLATE = '{}_{}'
