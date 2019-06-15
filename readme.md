@@ -1,27 +1,10 @@
-![logo](https://hpatches.github.io/assets/hpatches-logo.png "logo") 
-## Homography patches dataset 
+## Detector-descriptor benchmark
 
-This repository contains the code for evaluating feature descriptors
-on the `HPatches` dataset. For more information on the methods and the
-evaluation protocols please check [[1]](#refs).
+This is a benchmark for evaluation of state-of-the-art detector and descriptor algorithms. The details about the benchmark will soon be published as a paper.
 
-### Benchmark implementations
+### HPSequences dataset
 
-We provide two implementations for computing results on the HPatches
-dataset, one in `python` and one in `matlab`.
-
-| `python`        |   `matlab`  |
-| ------------- |:-------------:|
-|  [details](python/readme.md) | [details](matlab/README.md) |
-
-### Benchmark tasks
-
-Details about the benchmarking tasks can he found
-[here](docs/tasks.md).  
-For a more in-depth description, please see the CVPR
-2017 paper [[1]](#refs).
-
-### Getting the dataset
+Download dataset: [HPSequences dataset](http://icvl.ee.ic.ac.uk/vbalnt/hpatches/hpatches-sequences-release.tar.gz) [1.3GB]
 
 The data required for the benchmarks are saved in the `./data` folder,
 and are shared between the two implementations.
@@ -56,27 +39,13 @@ the following convention
 * `i_X`: patches extracted from image sequences with illumination changes
 * `v_X`: patches extracted from image sequences with viewpoint changes
 
-For each image sequence, we provide a set of reference patches
-`ref.png`. For the remaining 5 images in the sequence, we provide
-three patch sets `eK.png` and `hK.png` and `tK.png`, containing the
-corresponding patches from `ref.png` as found in the `K-th` image with
-increasing amounts of geometric noise (`e`<`h`<`t`).
+### Remarks
 
-![patches](./python/utils/imgs/patches.png "patches") 
-
-Please see the [patch extraction method details](./python/utils/docs/extraction.md) for more
-information about the extraction process. 
-
-
+This benchmark is based on the HPatches evaluation tasks [[1]](#refs) and HPSequences dataset published along with it ([HPatches dataset repository](https://github.com/hpatches/hpatches-dataset)). Thanks to the authors for providing the dataset and the evaluation details.
 
 ### References
 <a name="refs"></a>
 
 [1] *HPatches: A benchmark and evaluation of handcrafted and learned local descriptors*, Vassileios Balntas*, Karel Lenc*, Andrea Vedaldi and Krystian Mikolajczyk, CVPR 2017.
 *Authors contributed equally.
-
-
-
-> *You might also be interested in the [3D reconstruction](https://github.com/ahojnnes/local-feature-evaluation) benchmark by Schönberger et al. also presented at CVPR 2017.*
-
 
