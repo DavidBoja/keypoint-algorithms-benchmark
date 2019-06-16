@@ -8,12 +8,12 @@ This is a benchmark for evaluation of state-of-the-art detector and descriptor a
 
 Download dataset: [HPSequences dataset](http://icvl.ee.ic.ac.uk/vbalnt/hpatches/hpatches-sequences-release.tar.gz) [1.3GB]
 
-After download, the folder `../data/hpatches-release` contains all the
-patches from the 116 sequences. The sequence folders are named with
-the following convention
+Place the directory in a convenient location. The folder `hpatches-sequences-release` contains all the 116 directories, 57 of which represent  only  photometric  changes,  whereas 59 represent only geometric deformations. Each sequence consists of one reference image and 5 target images representing the appropriate illumination or viewpoint changes. Alongisde every target image there is a homography connecting it to the reference image (stored in files `H_1_<seq_num>`). In case of an illumination change  sequence,  the  homography  is  an  identity  mapping.
 
-* `i_X`: patches extracted from image sequences with illumination changes
-* `v_X`: patches extracted from image sequences with viewpoint changes
+The sequence folders are named with the following convention:
+
+* `i_X`: image sequences with illumination changes
+* `v_X`: image sequences with viewpoint changes
 
 ### Results
 
