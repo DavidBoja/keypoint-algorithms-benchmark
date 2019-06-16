@@ -15,7 +15,7 @@ from pprint import pprint
 import json
 #from skimage.feature import CENSURE
 
-from own_implementations import *
+from custom_impl import *
 from utils import *
 from evaluations import patchVerification, imageMatching, patchRetrieval
 #from visualizations import taskEvaluation

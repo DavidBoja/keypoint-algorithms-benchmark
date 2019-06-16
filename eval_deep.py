@@ -14,7 +14,6 @@ import itertools
 from pprint import pprint
 import json
 
-#from own_implementations import *
 from utils import *
 from evaluations import patchVerification, imageMatching, patchRetrieval
 from visualizations import taskEvaluation

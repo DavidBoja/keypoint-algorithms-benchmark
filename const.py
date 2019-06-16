@@ -44,7 +44,6 @@ TASKS = [VERIFICATION, MATCHING, RETRIEVAL]
 # ALGORITHM DICTIONARIES #
 ##########################
 import cv2
-# from own_implementations import *
 
 all_detectors = {'sift':cv2.xfeatures2d.SIFT_create,
                  'surf':cv2.xfeatures2d.SURF_create,

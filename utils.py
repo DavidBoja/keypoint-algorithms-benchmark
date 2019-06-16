@@ -12,7 +12,6 @@ from pprint import pprint
 from sklearn.metrics import average_precision_score
 from random import sample
 
-#from own_implementations import HarrisMataHarris, ShiTomasi, CensureClass, RootSIFT
 from const import *
 
 TIME_MEASURES_TXT = 'time_measures_zver_3.txt'
