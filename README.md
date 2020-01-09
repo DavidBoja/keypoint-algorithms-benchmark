@@ -17,7 +17,7 @@ The sequence folders are named with the following convention:
 
 ### Results
 
-To be published...
+![results](assets/results.png)
 
 ### Remarks
 
