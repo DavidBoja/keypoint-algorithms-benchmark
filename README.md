@@ -1,6 +1,6 @@
 ## Detector-descriptor benchmark
 
-This is a benchmark for evaluation of state-of-the-art detector and descriptor algorithms. The details about the benchmark will soon be published as a paper.
+This is a benchmark for evaluation of state-of-the-art detector and descriptor algorithms, a source code for the arXiv paper published on [ISPA](https://www.isispa.org/) conference: https://arxiv.org/abs/2007.10000 [[1]].
 
 ### HPSequences dataset
 
@@ -21,10 +21,13 @@ The sequence folders are named with the following convention:
 
 ### Remarks
 
-This benchmark is based on the HPatches evaluation tasks [[1]](#refs) and HPSequences dataset published along with it ([HPatches dataset repository](https://github.com/hpatches/hpatches-dataset)). Thanks to the authors for providing the dataset and the evaluation details.
+This benchmark is based on the HPatches evaluation tasks [[2]](#refs) and HPSequences dataset published along with it ([HPatches dataset repository](https://github.com/hpatches/hpatches-dataset)). Thanks to the authors for providing the dataset and the evaluation details.
 
 ### References
 <a name="refs"></a>
 
-[1] *HPatches: A benchmark and evaluation of handcrafted and learned local descriptors*, Vassileios Balntas*, Karel Lenc*, Andrea Vedaldi and Krystian Mikolajczyk, CVPR 2017.
+[1] *On the Comparison of Classic and Deep Keypoint Detector and Descriptor Methods*, Kristijan Bartol*, David Bojanić*, Tomislav Pribanić, Tomislav Petković, Yago Diez Donoso, Joaquim Salvi Mas, ISPA 2019.
+*Authors contributed equally.
+
+[2] *HPatches: A benchmark and evaluation of handcrafted and learned local descriptors*, Vassileios Balntas*, Karel Lenc*, Andrea Vedaldi and Krystian Mikolajczyk, CVPR 2017.
 *Authors contributed equally.
