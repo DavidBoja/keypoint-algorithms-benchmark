@@ -1,6 +1,6 @@
 ## Detector-descriptor benchmark
 
-This is a benchmark for evaluation of state-of-the-art detector and descriptor algorithms, a source code for the arXiv paper published on [ISPA](https://www.isispa.org/) conference: https://arxiv.org/abs/2007.10000 [[1]](#refs).
+This is a benchmark for evaluation of state-of-the-art detector and descriptor algorithms, a source code for the "On the Comparison of Classic and Deep Keypoint Detector and Descriptor Methods" paper published on [ISPA](https://www.isispa.org/) conference: https://arxiv.org/abs/2007.10000 [[1]](#refs).
 
 ### HPSequences dataset
 
