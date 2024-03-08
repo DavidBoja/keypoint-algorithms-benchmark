@@ -15,9 +15,10 @@ The sequence folders are named with the following convention:
 * `i_X`: image sequences with illumination changes
 * `v_X`: image sequences with viewpoint changes
 
+🚧 The results have been updated with the ALIKE algorithm 🚧
 ### Results
 
-![results](assets/results.png)
+![results](assets/results_updated.png)
 
 ### Remarks
 
